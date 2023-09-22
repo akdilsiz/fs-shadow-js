@@ -5,8 +5,10 @@
   "main": "index.js",
   "type": "commonjs",
   "scripts": {
-    "test": "export NODE_ENV=test || SET \"NODE_ENV=test\" && mocha --timeout 5000 *_test.js",
-    "test:coverage": "export NODE_ENV=test || SET \"NODE_ENV=test\" && nyc --reporter=text mocha --timeout 5000"
+    "test": "export NODE_ENV=test || SET \"NODE_ENV=test\" && mocha",
+    "testAll": "export NODE_ENV=test || SET \"NODE_ENV=test\" && mocha *_test.js",
+    "test:coverage": "export NODE_ENV=test || SET \"NODE_ENV=test\" && nyc --reporter=text mocha",
+    "test:coverageAll": "export NODE_ENV=test || SET \"NODE_ENV=test\" && nyc --reporter=text mocha  *_test.js"
   },
   "repository": {
     "type": "git",

@@ -1,3 +1,4 @@
+const { ErrArguments } = require('./errors')
 const { Path } = require('./path')
 const EventTypes = {
   Remove: 'remove',
@@ -13,6 +14,10 @@ class Event {
   ToPath = new Path()
 
   constructor(type = EventTypes.Create, fromPath = new Path(), toPath = new Path()) {
+    if (Object.values(EventTypes).indexOf(type) === -1) {
+      throw ErrArguments
+    }
+
     this.Type = type
     this.FromPath = fromPath
     this.ToPath = toPath

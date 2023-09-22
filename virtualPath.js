@@ -31,7 +31,7 @@ class VirtualPath extends Path {
   }
   ParentPath() {
     const parts = this.String().split(Separator),
-      absolutePath = parts[parts.length-1].join(Separator)
+      absolutePath = parts.slice(0, parts.length-1).join(Separator)
 
     return new VirtualPath(absolutePath, true)
   }

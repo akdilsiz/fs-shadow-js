@@ -1,5 +1,5 @@
+const { ErrArguments } = require('./errors')
 const Separator = '/'
-
 
 class Path {
   IsVirtual() {
@@ -33,7 +33,15 @@ class FileInfo {
   Size = 0
   CreatedAt = 0
   Permission = ''
-
+  constructor(isDir = false, size = 0, createdAt = 0, permission = '') {
+    if (size < 0 || createdAt < 0) {
+      throw ErrArguments
+    }
+    this.IsDir = isDir
+    this.Size = size
+    this.CreatedAt = createdAt
+    this.Permission = permission
+  }
   ToJSON() {
     return JSON.stringify({
       IsDir: this.IsDir,
@@ -46,7 +54,9 @@ class FileInfo {
   FromJSON(jsonString) {
     try {
       const parsed = JSON.parse(jsonString)
-
+      if (parsed.Size < 0 || parsed.CreatedAt < 0) {
+        return { fileInfo: null, error: ErrArguments }
+      }
       this.IsDir = parsed.IsDir
       this.Size = parsed.Size
       this.CreatedAt = parsed.CreatedAt
