@@ -1,28 +1,30 @@
 {
   "name": "fs-shadow-js",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "FS-Shadow Javascript",
   "main": "index.js",
   "type": "commonjs",
   "scripts": {
-    "test": "export NODE_ENV=test || SET \"NODE_ENV=test\" && mocha --timeout 5000 *_test.js",
-    "test:coverage": "export NODE_ENV=test || SET \"NODE_ENV=test\" && nyc --reporter=text mocha --timeout 5000"
+    "test": "export NODE_ENV=test || SET \"NODE_ENV=test\" && mocha",
+    "testAll": "export NODE_ENV=test || SET \"NODE_ENV=test\" && mocha *_test.js",
+    "test:coverage": "export NODE_ENV=test || SET \"NODE_ENV=test\" && nyc --reporter=text mocha",
+    "test:coverageAll": "export NODE_ENV=test || SET \"NODE_ENV=test\" && nyc --reporter=text mocha  *_test.js"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ayhanozemre/fs-shadow-js.git"
+    "url": "git+https://github.com/akdilsiz/fs-shadow-js.git"
   },
   "keywords": [
     "fs",
     "virtual",
     "file-system"
   ],
-  "author": "ayhanozemre <https://github.com/ayhanozemre>",
+  "author": "Abdulkadir Dilsiz <https://github.com/akdilsiz>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/ayhanozemre/fs-shadow-js/issues"
+    "url": "https://github.com/akdilsiz/fs-shadow-js/issues"
   },
-  "homepage": "https://github.com/ayhanozemre/fs-shadow-js#readme",
+  "homepage": "https://github.com/akdilsiz/fs-shadow-js#readme",
   "devDependencies": {
     "mocha": "^10.2.0",
     "nyc": "^15.1.0",

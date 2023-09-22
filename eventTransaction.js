@@ -1,4 +1,5 @@
 const { encode, decode } = require('@msgpack/msgpack')
+const { ErrArguments } = require('./errors')
 const { EventTypes } = require('./event')
 const { MetaData } = require('./types')
 const FileNode = require('./fileNode')
@@ -11,6 +12,10 @@ class EventTransaction {
   Meta = new MetaData()
   constructor(name = '', type = EventTypes.Create, uUID = '',
               parentUUID = '', meta = new MetaData()) {
+    if (Object.values(EventTypes).indexOf(type) === -1) {
+      throw ErrArguments
+    }
+
     this.Name = name
     this.Type = type
     this.UUID = uUID
@@ -42,7 +47,12 @@ class EventTransaction {
       this.Type = decoded.Type
       this.UUID = decoded.UUID
       this.ParentUUID = decoded.ParentUUID
-      this.Meta = new MetaData().FromObject(decoded.Meta)
+
+      const { metaData, error } = new MetaData().FromObject(decoded.Meta)
+      if (error) {
+        return { eventTransaction: null, error: error }
+      }
+      this.Meta = metaData
 
       return { eventTransaction: this, error: null }
     } catch (e) {

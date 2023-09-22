@@ -1,11 +1,12 @@
 const { MetaData, ExtraPayload } = require('./types')
 const { Path, Separator } = require('./path')
-
-const ErrToFileNodeNotFound = new Error('to FileNode not found'),
-  ErrFileNodeExists = new Error('FileNode already exists'),
-  ErrFileNodeNotFound = new Error('FileNode not found'),
-  ErrSubsNodeNotFound = new Error('subs nodes not found'),
-  ErrFileExists = new Error('this file already exists')
+const {
+  ErrToFileNodeNotFound,
+  ErrFileNodeExists,
+  ErrFileNodeNotFound,
+  ErrSubsNodeNotFound,
+  ErrFileExists, ErrArguments
+} = require('./errors')
 
 class FileNode {
   Subs = []
@@ -32,7 +33,7 @@ class FileNode {
       name: this.Name,
       uuid: this.UUID,
       parent_uuid: this.ParentUUID,
-      meta: this.Meta
+      meta: this.Meta.ToObject()
     })
   }
 
@@ -52,7 +53,11 @@ class FileNode {
       this.Name = parsed.name
       this.UUID = parsed.uuid
       this.ParentUUID = parsed.parent_uuid
-      this.Meta = new MetaData().FromObject(parsed.meta)
+      const { metaData, error } = new MetaData().FromObject(parsed.meta)
+      if (error) {
+        return { fileNode: null, error: error }
+      }
+      this.Meta = metaData
 
       return { fileNode: this, error: null }
     } catch (e) {
@@ -66,21 +71,32 @@ class FileNode {
       name: this.Name,
       uuid: this.UUID,
       parent_uuid: this.ParentUUID,
-      meta: this.Meta
+      meta: this.Meta.ToObject()
     }
   }
 
   FromObject(obj) {
     try {
+      if (!(obj instanceof Object)) {
+        return { fileNode: null, error: ErrArguments }
+      }
+
       this.Subs = []
       for (let i = 0; i < obj.subs.length; i++) {
-        const current = obj.subs[i]
-        this.Subs.push(new FileNode().FromObject(current))
+        const { fileNode, error } = new FileNode().FromObject(obj.subs[i])
+        if (error) {
+          return { fileNode: null, error: null }
+        }
+        this.Subs.push(fileNode)
       }
       this.Name = obj.name
       this.UUID = obj.uuid
       this.ParentUUID = obj.parent_uuid
-      this.Meta = new MetaData().FromObject(obj.meta)
+      const { metaData, error } = new MetaData().FromObject(obj.meta)
+      if (error) {
+        return { fileNode: null, error: error }
+      }
+      this.Meta = metaData
 
       return { fileNode: this, error: null }
     } catch (e) {
@@ -157,7 +173,7 @@ class FileNode {
 
       if (lookupValue === value) {
         deletedNode = parentNode.Subs[i]
-        parentNode.Subs = [...parentNode.Subs.slice(0, i-1), parentNode.Subs.slice(i+1, parentNode.Subs.length)]
+        parentNode.Subs = [...parentNode.Subs.slice(0, i), ...parentNode.Subs.slice(i+1, parentNode.Subs.length)]
         break
       } else {
         deletedNode = null
@@ -214,6 +230,9 @@ class FileNode {
         node = this.Subs[i].Search(newPath)
         if (node !== null) {
           wantedNode = node
+          break
+        } else {
+          wantedNode = null
         }
       }
       if (wantedNode !== null) {

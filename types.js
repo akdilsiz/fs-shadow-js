@@ -57,22 +57,33 @@ class MetaData {
 
   ToObject() {
     return {
-      IsDir: this.IsDir,
-      Sum: this.Sum,
-      Size: this.Size,
-      CreatedAt: this.CreatedAt,
-      Permission: this.Permission
+      is_dir: this.IsDir,
+      sum: this.Sum,
+      size: this.Size,
+      created_at: this.CreatedAt,
+      permission: this.Permission
     }
   }
 
   FromObject(obj) {
-    this.IsDir = obj.IsDir
-    this.Sum = obj.Sum
-    this.Size = obj.Size
-    this.CreatedAt = obj.CreatedAt
-    this.Permission = obj.Permission
+    try {
+      if (!(obj instanceof Object)) {
+        return { metaData: null, error: ErrArguments }
+      }
+      if (obj.size < 0 || obj.created_at < 0) {
+        return { metaData: null, error: ErrArguments }
+      }
 
-    return this
+      this.IsDir = obj.is_dir
+      this.Sum = obj.sum
+      this.Size = obj.size
+      this.CreatedAt = obj.created_at
+      this.Permission = obj.permission
+
+      return { metaData: this, error: null }
+    } catch (e) {
+      return { metaData: null, error: e }
+    }
   }
 }
 

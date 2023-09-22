@@ -1,0 +1,4 @@
+recursive: true
+timeout: 5000
+diff: true
+inline-diffs: true
