@@ -1,4 +1,3 @@
-const { Path } = require('./path')
 const VirtualPath = require('./virtualPath')
 const { ExtraPayload, MetaData } = require('./types')
 const { Event, EventTypes } = require('./event')
@@ -7,9 +6,9 @@ const EventTransaction = require('./eventTransaction')
 
 class VirtualTree {
   FileTree = new FileNode()
-  Path = new Path()
-  ParentPath = new Path()
-  constructor(fileTree = new FileNode(), path = new Path(), parentPath = new Path()) {
+  Path = new VirtualPath()
+  ParentPath = new VirtualPath()
+  constructor(fileTree = new FileNode(), path = new VirtualPath(), parentPath = new VirtualPath()) {
     this.FileTree = fileTree
     this.Path = path
     this.ParentPath = parentPath
@@ -75,7 +74,7 @@ class VirtualTree {
     console.log(JSON.stringify(this.FileTree.ToObject(), null, 2))
     console.log(`----------------${label}----------------\n\n`)
   }
-  Create(fromPath = new Path(), extra = new ExtraPayload()) {
+  Create(fromPath = new VirtualPath(), extra = new ExtraPayload()) {
     const eventPath = fromPath.ExcludePath(this.ParentPath),
       { fileNode, error } = this.FileTree.Create(eventPath, fromPath)
 
@@ -85,7 +84,7 @@ class VirtualTree {
 
     return { fileNode: fileNode, error: null }
   }
-  Remove(fromPath = new Path()) {
+  Remove(fromPath = new VirtualPath()) {
     const { fileNode, error } = this.FileTree.Remove(fromPath.ExcludePath(this.ParentPath))
     if (error) {
       return { fileNode: null, error: error }
@@ -93,7 +92,7 @@ class VirtualTree {
 
     return { fileNode: fileNode, error: null }
   }
-  Rename(fromPath = new Path(), toPath = new Path()) {
+  Rename(fromPath = new VirtualPath(), toPath = new VirtualPath()) {
     const { fileNode, error } = this.FileTree.Rename(fromPath.ExcludePath(this.ParentPath),
       toPath.ExcludePath(this.ParentPath))
 
@@ -103,7 +102,7 @@ class VirtualTree {
 
     return { fileNode: fileNode, error: null }
   }
-  Move(fromPath = new Path(), toPath = new Path()) {
+  Move(fromPath = new VirtualPath(), toPath = new VirtualPath()) {
     const { fileNode, error } = this.FileTree.Move(fromPath.ExcludePath(this.ParentPath),
       toPath.ExcludePath(this.ParentPath))
 
@@ -113,7 +112,7 @@ class VirtualTree {
 
     return { fileNode: fileNode, error: null }
   }
-  Write(fromPath = new Path()) {
+  Write(fromPath = new VirtualPath()) {
     return { fileNode: null, error: null }
   }
 

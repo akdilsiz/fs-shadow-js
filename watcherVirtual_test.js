@@ -64,6 +64,8 @@ describe('VirtualTree Tests', () => {
     unitJS.value(virtualTree.SearchByPath(eventFolderPath.String())).isNull()
 
     virtualTree.PrintTree('FS Shadow')
+
+
   })
 })
 
