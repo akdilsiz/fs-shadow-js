@@ -65,7 +65,10 @@ describe('VirtualTree Tests', () => {
 
     virtualTree.PrintTree('FS Shadow')
 
+    const { eventTransaction: eventTransaction5, error: error5 } = virtualTree.Handler(new Event(EventTypes.Write), new ExtraPayload(v4()))
 
+    unitJS.value(error5).isNull()
+    unitJS.value(error5).isNull()
   })
 })
 
