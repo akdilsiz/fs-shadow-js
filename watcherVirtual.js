@@ -29,11 +29,11 @@ class VirtualTree {
         node = response.fileNode
         error = response.error
         break
-      case EventTypes.Write:
-        response = this.Write(event.FromPath)
-        node = response.fileNode
-        error = response.error
-        break
+      // case EventTypes.Write:
+      //   response = this.Write(event.FromPath)
+      //   node = response.fileNode
+      //   error = response.error
+      //   break
       case EventTypes.Create:
         response = this.Create(event.FromPath, bExtra)
         node = response.fileNode
@@ -61,6 +61,8 @@ class VirtualTree {
   }
   Restore(tree = new FileNode()) {
     this.FileTree = tree
+
+    return this
   }
 
   SearchByPath(p = '') {
@@ -81,6 +83,8 @@ class VirtualTree {
     if (error) {
       return { fileNode: null, error: error }
     }
+
+    fileNode.UpdateWithExtra(extra)
 
     return { fileNode: fileNode, error: null }
   }

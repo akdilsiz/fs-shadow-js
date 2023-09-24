@@ -180,6 +180,10 @@ class FileNode {
       }
     }
 
+    if (deletedNode === null) {
+      return { fileNode: null, error: ErrFileNodeNotFound}
+    }
+
     return { fileNode: deletedNode, error: null }
   }
   UpdateWithExtra(extra = new ExtraPayload()) {
@@ -200,7 +204,7 @@ class FileNode {
 
     for (let i = 0; i < parentNode.Subs.length; i++) {
       if (parentNode.Subs[i].Name === fromPath.Name()) {
-        return { fileNode: null, error: ErrFileExists }
+        return { fileNode: null, error: fromPath.IsDir() ? ErrFileExists : ErrFileNodeExists }
       }
     }
 
@@ -254,6 +258,9 @@ class FileNode {
       node = this.Subs[i].SearchByUUID(uUID)
       if (node !== null) {
         wantedNode = node
+        break
+      } else {
+        wantedNode = null
       }
     }
     if (wantedNode !== null) {
