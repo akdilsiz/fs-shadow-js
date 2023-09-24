@@ -290,6 +290,8 @@ describe('FileNode Tests', () => {
       nodeUUID = tree.Subs[2].UUID,
       node = tree.SearchByUUID(nodeUUID)
 
+    console.log(node)
+    console.log(tree.Subs)
     unitJS.assert.equal(tree.Subs[2], node)
   })
 
