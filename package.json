@@ -1,6 +1,6 @@
 {
   "name": "fs-shadow-js",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "FS-Shadow Javascript",
   "main": "index.js",
   "type": "commonjs",
