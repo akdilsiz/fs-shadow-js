@@ -163,7 +163,7 @@ class FileNode {
       return { fileNode: null, error: ErrSubsNodeNotFound }
     }
     let lookupValue = '',
-      deletedNode = new FileNode()
+      deletedNode = null
     for (let i = 0; i < parentNode.Subs.length; i++) {
       if (searchField.length > 0 && searchField === 'uuid') {
         lookupValue = parentNode.Subs[i].UUID
@@ -175,8 +175,6 @@ class FileNode {
         deletedNode = parentNode.Subs[i]
         parentNode.Subs = [...parentNode.Subs.slice(0, i), ...parentNode.Subs.slice(i+1, parentNode.Subs.length)]
         break
-      } else {
-        deletedNode = null
       }
     }
 
@@ -227,7 +225,7 @@ class FileNode {
     if (pathExp.length === 1 && this.Name === pathExp[0]) {
       return this
     }
-    let newPath, node, wantedNode = new FileNode()
+    let newPath, node, wantedNode = null
     if (pathExp.length !== 1 && this.Name === pathExp[0]) {
       newPath = pathExp.slice(1, pathExp.length).join(Separator)
       for (let i = 0; i < this.Subs.length; i++) {
@@ -235,8 +233,6 @@ class FileNode {
         if (node !== null) {
           wantedNode = node
           break
-        } else {
-          wantedNode = null
         }
       }
       if (wantedNode !== null) {
@@ -253,14 +249,12 @@ class FileNode {
     if (!this.Subs.length) {
       return null
     }
-    let node, wantedNode = new FileNode()
+    let node, wantedNode = null
     for (let i = 0; i < this.Subs.length; i++) {
       node = this.Subs[i].SearchByUUID(uUID)
       if (node !== null) {
         wantedNode = node
         break
-      } else {
-        wantedNode = null
       }
     }
     if (wantedNode !== null) {
