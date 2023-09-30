@@ -1,6 +1,6 @@
 const unitJS = require('unit.js')
 const { v4 } = require('uuid')
-const { encode, decode } = require('@msgpack/msgpack')
+const { encode } = require('@msgpack/msgpack')
 const { ErrArguments } = require('./errors')
 const { MetaData } = require('./types')
 const EventTransaction = require('./eventTransaction')
@@ -53,7 +53,13 @@ describe('EventTransaction Tests', () => {
         Type: 'create',
         UUID: uUID,
         ParentUUID: parentUUID,
-        Meta: metaData.ToObject()
+        Meta: {
+          IsDir: metaData.IsDir,
+          Sum: metaData.Sum,
+          Size: metaData.Size,
+          CreatedAt: metaData.CreatedAt,
+          Permission: metaData.Permission
+        }
       })
 
     unitJS.value(error).isNull()
@@ -85,8 +91,7 @@ describe('EventTransaction Tests', () => {
       { encoded, error } = eventTransaction.Encode()
 
     unitJS.value(encoded).isNull()
-    unitJS.value(error).isInstanceOf(Error)
-    unitJS.value(error.message).contains('Unrecognized object')
+    unitJS.value(error).is(ErrArguments)
   })
 
   it('EventTransaction .Decode()', () => {
@@ -138,31 +143,29 @@ describe('EventTransaction Tests', () => {
       { encoded, error } = eventTransaction.Encode(),
       { eventTransaction: decodedEventTransaction, error: error2 } = new EventTransaction().Decode(encoded)
 
-    unitJS.value(error).isNull()
+    unitJS.value(error).is(ErrArguments)
     unitJS.value(decodedEventTransaction).isNull()
-    unitJS.value(error2).is(ErrArguments)
+    unitJS.value(error2).isInstanceOf(Error)
   })
 
   it('Should be error EventTransaction .Decode() is invalid meta data size', () => {
     const uUID = v4(),
       parentUUID= v4(),
-      metaData = new MetaData(false, 'sum', 1, 1, 'permission'),
-      eventTransaction = new EventTransaction('transaction1',
-        EventTypes.Create,
-        uUID,
-        parentUUID,
-        {
-          ToObject: () => {
-            return {
-              size: -1,
-              created_at: -1
-            }
+      encoded= encode({
+        Name: 'transaction1',
+        Type: EventTypes.Create,
+        UUID: uUID,
+        ParentUUID: parentUUID,
+        Meta: {
+            Size: -1,
+            CreatedAt: -1,
+            IsDir: false,
+            Sum: '',
+            Permission: ''
           }
         }),
-      { encoded, error } = eventTransaction.Encode(),
       { eventTransaction: decodedEventTransaction, error: error2 } = new EventTransaction().Decode(encoded)
 
-    unitJS.value(error).isNull()
     unitJS.value(decodedEventTransaction).isNull()
     unitJS.value(error2).is(ErrArguments)
   })

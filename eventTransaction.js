@@ -24,13 +24,23 @@ class EventTransaction {
   }
   Encode() {
     try {
+      if (!(this.Meta instanceof MetaData)) {
+        return { encoded: null, error: ErrArguments }
+      }
+
       return {
         encoded: encode({
           Name: this.Name,
           Type: this.Type,
           UUID: this.UUID,
           ParentUUID: this.ParentUUID,
-          Meta: this.Meta.ToObject()
+          Meta: {
+            IsDir: this.Meta.IsDir,
+            Sum: this.Meta.Sum,
+            Size: this.Meta.Size,
+            CreatedAt: this.Meta.CreatedAt,
+            Permission: this.Meta.Permission
+          }
         }),
           error: null
       }
@@ -47,12 +57,11 @@ class EventTransaction {
       this.Type = decoded.Type
       this.UUID = decoded.UUID
       this.ParentUUID = decoded.ParentUUID
-
-      const { metaData, error } = new MetaData().FromObject(decoded.Meta)
-      if (error) {
-        return { eventTransaction: null, error: error }
-      }
-      this.Meta = metaData
+      this.Meta = new MetaData(decoded.Meta.IsDir,
+        decoded.Meta.Sum,
+        decoded.Meta.Size,
+        decoded.Meta.CreatedAt,
+        decoded.Meta.Permission)
 
       return { eventTransaction: this, error: null }
     } catch (e) {
