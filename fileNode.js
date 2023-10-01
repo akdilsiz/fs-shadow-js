@@ -149,13 +149,13 @@ class FileNode {
     const fileName = fromPath.Name(),
       parentNode = this.Search(fromPath.ParentPath().String())
 
-    return this.#remove(parentNode, fileName)
+    return this._remove(parentNode, fileName)
   }
   RemoveByUUID(uUID = '', parentUUID = '') {
     const parentNode = this.SearchByUUID(parentUUID)
-    return this.#remove(parentNode, uUID, 'uuid')
+    return this._remove(parentNode, uUID, 'uuid')
   }
-  #remove(parentNode = new FileNode(), value = '', searchField = '') {
+  _remove(parentNode = new FileNode(), value = '', searchField = '') {
     if (parentNode === null || parentNode.Name.length === 0) {
       return { fileNode: null, error: ErrFileNodeNotFound}
     }
