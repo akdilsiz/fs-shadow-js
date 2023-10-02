@@ -46,8 +46,9 @@ describe('Restore Tests', () => {
 
   it('RestoreWatcherWithTransactions', () => {
     const root = 'fs-shadow',
+      rootUUID = v4(),
       txnS = generateTransactionsBytes()
-    const { watcher, error } = NewVirtualPathWatcher(root, new ExtraPayload(v4(), true))
+    const { watcher, error } = NewVirtualPathWatcher(rootUUID, root, new ExtraPayload(v4(), true))
     unitJS.value(error).isNull()
 
     const err = RestoreWatcherWithTransactions(txnS, watcher)
@@ -58,8 +59,9 @@ describe('Restore Tests', () => {
 
   it('Should be error RestoreWatcherWithTransactions is invalid transactions', () => {
     const root = 'fs-shadow',
+      rootUUID = v4(),
       txnS = ['tx1']
-    const { watcher, error } = NewVirtualPathWatcher(root, new ExtraPayload(v4(), true))
+    const { watcher, error } = NewVirtualPathWatcher('', root, new ExtraPayload(v4(), true))
     unitJS.value(error).isNull()
 
     const err = RestoreWatcherWithTransactions(txnS, watcher)

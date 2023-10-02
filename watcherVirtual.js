@@ -125,10 +125,11 @@ class VirtualTree {
   }
 }
 
-const NewVirtualPathWatcher = (virtualPath = '', extra = new ExtraPayload()) => {
+const NewVirtualPathWatcher = (uUID = '', virtualPath = '', extra = new ExtraPayload()) => {
   const path = new VirtualPath(virtualPath, true),
     root = new FileNode([],
       path.Name(),
+      '',
       '',
       new MetaData(true)),
     virtualTree = new VirtualTree(root, path, path.ParentPath()),
