@@ -13,13 +13,17 @@ class VirtualTree {
     this.Path = path
     this.ParentPath = parentPath
   }
-  Handler(event = new Event(), extra = new ExtraPayload()) {
+
+  /**
+   * params event = new Event(), extra = new ExtraPayload()
+   */
+  Handler(event, extra) {
     let error = null,
       node = new FileNode(),
-      bExtra = new ExtraPayload(),
+      bExtra = null,
       response
 
-    if (extra.UUID.length) {
+    if (extra) {
       bExtra = extra
     }
 
