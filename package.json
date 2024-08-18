@@ -28,11 +28,11 @@
   "devDependencies": {
     "mocha": "^10.2.0",
     "nyc": "^15.1.0",
-    "unit.js": "^2.1.1"
+    "unit.js": "^2.1.1",
+    "js-sha256": "^0.11.0"
   },
   "dependencies": {
     "@msgpack/msgpack": "^3.0.0-beta2",
-    "js-sha256": "^0.11.0",
-    "uuid": "^9.0.1"
+    "uuid": "^10.0.0"
   }
 }
