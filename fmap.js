@@ -55,6 +55,10 @@ class FMap {
 
     return this
   }
+
+  clear() {
+    this.m.clear()
+  }
 }
 
 module.exports = {
