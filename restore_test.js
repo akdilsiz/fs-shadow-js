@@ -26,6 +26,28 @@ const generateTransactionsBytes = () => {
   }
 
   return encodedTxnS
+},
+ generateTransactionsBytesTwo = () => {
+  const uUIDs = [v4(), v4(), v4(), v4(), v4()],
+    eTxnS = [
+      new EventTransaction('test-1', EventTypes.Create, uUIDs[0]),
+      new EventTransaction('s-test-1', EventTypes.Create, uUIDs[1], uUIDs[0]),
+      new EventTransaction('ss-test-1', EventTypes.Create, uUIDs[2], uUIDs[1]),
+      new EventTransaction('s-test-2', EventTypes.Create, uUIDs[3], uUIDs[0]),
+      new EventTransaction('s-test-2', EventTypes.Remove, uUIDs[3], uUIDs[0]),
+      new EventTransaction('s-test-2-rename', EventTypes.Rename, uUIDs[3], uUIDs[0]),
+      new EventTransaction('s-test-2-rename', EventTypes.Move, uUIDs[3], uUIDs[0]),
+      new EventTransaction('s-test-3', EventTypes.Create, uUIDs[4], uUIDs[0]),
+      new EventTransaction('s-test-3', EventTypes.Remove, uUIDs[4], uUIDs[0])
+    ],
+    encodedTxnS = []
+
+  for (let i = 0; i < eTxnS.length; i++) {
+    const { encoded } = eTxnS[i].Encode()
+    encodedTxnS.push(encoded)
+  }
+
+  return { encodedTxnS, uUIDs }
 }
 
 describe('Restore Tests', () => {
@@ -38,7 +60,7 @@ describe('Restore Tests', () => {
     unitJS.assert.equal('s-test-1', fileNode.Subs[0].Name)
   })
 
-  it('Should be error CreateFileNodeWithTransactions is invalid transactions', () => {
+  it('should be error CreateFileNodeWithTransactions is invalid transactions', () => {
     const { fileNode, error } = CreateFileNodeWithTransactions(['tx1', 'tx2'])
     unitJS.value(error).isInstanceOf(Error)
     unitJS.value(fileNode).isNull()
@@ -57,7 +79,20 @@ describe('Restore Tests', () => {
     unitJS.assert.equal('s-test-1', watcher.FileTree.Subs[0].Name)
   })
 
-  it('Should be error RestoreWatcherWithTransactions is invalid transactions', () => {
+  it('RestoreWatcherWithTransactions case two', () => {
+    const root = 'fs-shadow',
+      rootUUID = v4(),
+      { encodedTxnS: txnS, uUIDs } = generateTransactionsBytesTwo()
+    const { watcher, error } = NewVirtualPathWatcher(rootUUID, root, new ExtraPayload(v4(), true))
+    unitJS.value(error).isNull()
+
+    const err = RestoreWatcherWithTransactions(txnS, watcher)
+    unitJS.value(err).isNull()
+    unitJS.assert.equal('test-1', watcher.FileTree.Name)
+    unitJS.assert.equal('s-test-2-rename', watcher.FileTree.SearchByUUID(uUIDs[3]).Name)
+  })
+
+  it('should be error RestoreWatcherWithTransactions is invalid transactions', () => {
     const root = 'fs-shadow',
       rootUUID = v4(),
       txnS = ['tx1']
