@@ -2,9 +2,11 @@ const FileNode = require('./fileNode')
 const { EventTypes } = require('./event')
 const EventTransaction = require('./eventTransaction')
 const { VirtualTree } = require('./watcherVirtual')
+const { FMap } = require('./fmap')
 
 const CreateFileNodeWithTransactions = (transactions = []) => {
-  const uUIDTable = {}
+  const table = new FMap()
+
   let root = new FileNode(),
     currentNode = null
 
@@ -21,26 +23,36 @@ const CreateFileNodeWithTransactions = (transactions = []) => {
 
     switch (eventTransaction.Type) {
       case EventTypes.Create:
-        uUIDTable[fileNode.UUID] = fileNode
-        if (uUIDTable[fileNode.ParentUUID]) {
-          uUIDTable[fileNode.ParentUUID].Subs.push(fileNode)
+        // uUIDTable[fileNode.UUID] = fileNode
+        table.append(fileNode.UUID, fileNode)
+        // if (uUIDTable[fileNode.ParentUUID]) {
+        //   uUIDTable[fileNode.ParentUUID].Subs.push(fileNode)
+        // }
+        if (table.has(fileNode.ParentUUID)) {
+          table.getLast(fileNode.ParentUUID).Subs.push(fileNode)
         }
         break
       case EventTypes.Rename:
-        currentNode = uUIDTable[fileNode.UUID]
+        // currentNode = uUIDTable[fileNode.UUID]
+        currentNode = table.getLast(fileNode.UUID)
         currentNode.Name = fileNode.Name
         currentNode.Meta = fileNode.Meta
         break
       case EventTypes.Move:
-        currentNode = uUIDTable[fileNode.UUID]
+        // currentNode = uUIDTable[fileNode.UUID]
+        currentNode = table.getLast(fileNode.UUID)
         root.RemoveByUUID(currentNode.UUID, currentNode.ParentUUID)
-        if (uUIDTable[fileNode.ParentUUID]) {
+        // if (uUIDTable[fileNode.ParentUUID]) {
+        //   currentNode.ParentUUID = fileNode.ParentUUID
+        //   uUIDTable[fileNode.ParentUUID].Subs.push(currentNode)
+        // }
+        if (table.has(fileNode.ParentUUID)) {
           currentNode.ParentUUID = fileNode.ParentUUID
-          uUIDTable[fileNode.ParentUUID].Subs.push(currentNode)
+          table.getLast(fileNode.ParentUUID).Subs.push(currentNode)
         }
         break
       case EventTypes.Remove:
-        delete uUIDTable[fileNode.UUID]
+        // delete uUIDTable[fileNode.UUID]
         root.RemoveByUUID(fileNode.UUID, fileNode.ParentUUID)
         break
     }

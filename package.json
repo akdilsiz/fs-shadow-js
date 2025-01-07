@@ -1,6 +1,6 @@
 {
   "name": "fs-shadow-js",
-  "version": "1.0.12",
+  "version": "1.1.0-rc.1",
   "description": "FS-Shadow Javascript",
   "main": "index.js",
   "type": "commonjs",
@@ -26,13 +26,13 @@
   },
   "homepage": "https://github.com/akdilsiz/fs-shadow-js#readme",
   "devDependencies": {
-    "mocha": "^10.7.3",
-    "nyc": "^17.0.0",
+    "mocha": "^11.0.1",
+    "nyc": "^17.1.0",
     "unit.js": "^2.1.1",
     "js-sha256": "^0.11.0"
   },
   "dependencies": {
     "@msgpack/msgpack": "^3.0.0-beta2",
-    "uuid": "^10.0.0"
+    "uuid": "^11.0.4"
   }
 }
