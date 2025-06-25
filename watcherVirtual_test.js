@@ -104,22 +104,22 @@ describe('VirtualTree Tests', () => {
 
     const { eventTransaction: eventTransaction8, error: error8 } = virtualTree.Handler(new Event(EventTypes.Create, moveFolderEventPath, moveFolderPath), new ExtraPayload(v4()))
 
-    unitJS.value(error8).is(ErrFileNodeExists)
+    unitJS.value(error8).is(new Error(ErrFileNodeExists))
     unitJS.value(eventTransaction8).isNull()
 
     const { eventTransaction: eventTransaction9, error: error9 } = virtualTree.Handler(new Event(EventTypes.Remove, eventFolderPath))
 
-    unitJS.value(error9).is(ErrFileNodeNotFound)
+    unitJS.value(error9).is(new Error(ErrFileNodeNotFound))
     unitJS.value(eventTransaction9).isNull()
 
     const { eventTransaction: eventTransaction10, error: error10 } = virtualTree.Handler(new Event(EventTypes.Rename, eventFilePath, renameEventFilePath))
 
-    unitJS.value(error10).is(ErrFileNodeNotFound)
+    unitJS.value(error10).is(new Error(ErrFileNodeNotFound))
     unitJS.value(eventTransaction10).isNull()
 
     const { eventTransaction: eventTransaction11, error: error11  } = virtualTree.Handler(new Event(EventTypes.Move, renameEventFilePath, moveFolderEventPath))
 
-    unitJS.value(error11).is(ErrFileNodeNotFound)
+    unitJS.value(error11).is(new Error(ErrFileNodeNotFound))
     unitJS.value(eventTransaction11).isNull()
 
     const { fileNode: fileNode12, error: error12  } = virtualTree.Write(movedFilePath)

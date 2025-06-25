@@ -33,10 +33,10 @@ describe('FileInfo Tests', () => {
     unitJS.assert.equal('permission', fileInfo.Permission)
   })
 
-  it('Should be throw ErrArguments with invalid size ', () => {
+  it('Should be throw new Error(ErrArguments) with invalid size ', () => {
     unitJS.error(() => {
       new FileInfo(true, -1, 0, 'perm')
-    }).is(ErrArguments)
+    }).is(new Error(ErrArguments))
   })
 
   it('.ToJSON()', () => {
@@ -68,7 +68,7 @@ describe('FileInfo Tests', () => {
     const jsonValue = `{"IsDir":true,"Size":3,"CreatedAt":-1,"Permission":"perm1"}`,
       { fileInfo, error } = new FileInfo().FromJSON(jsonValue)
 
-    unitJS.value(error).is(ErrArguments)
+    unitJS.value(error).is(new Error(ErrArguments))
     unitJS.value(fileInfo).isNull()
   })
 })

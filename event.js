@@ -15,7 +15,7 @@ class Event {
 
   constructor(type = EventTypes.Create, fromPath = new Path(), toPath = new Path()) {
     if (Object.values(EventTypes).indexOf(type) === -1) {
-      throw ErrArguments
+      throw new Error(ErrArguments)
     }
 
     this.Type = type

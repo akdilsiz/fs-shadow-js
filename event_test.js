@@ -35,7 +35,7 @@ describe('Event Tests', () => {
         from,
         to
       )
-    }).is(ErrArguments)
+    }).is(new Error(ErrArguments))
   })
 
   it('EventTransaction String()', () => {
