@@ -13,7 +13,7 @@ class EventTransaction {
   constructor(name = '', type = EventTypes.Create, uUID = '',
               parentUUID = '', meta = new MetaData()) {
     if (Object.values(EventTypes).indexOf(type) === -1) {
-      throw ErrArguments
+      throw new Error(ErrArguments)
     }
 
     this.Name = name
@@ -25,7 +25,7 @@ class EventTransaction {
   Encode() {
     try {
       if (!(this.Meta instanceof MetaData)) {
-        return { encoded: null, error: ErrArguments }
+        return { encoded: null, error: new Error(ErrArguments) }
       }
 
       return {

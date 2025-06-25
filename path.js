@@ -35,7 +35,7 @@ class FileInfo {
   Permission = ''
   constructor(isDir = false, size = 0, createdAt = 0, permission = '') {
     if (size < 0 || createdAt < 0) {
-      throw ErrArguments
+      throw new Error(ErrArguments)
     }
     this.IsDir = isDir
     this.Size = size
@@ -55,7 +55,7 @@ class FileInfo {
     try {
       const parsed = JSON.parse(jsonString)
       if (parsed.Size < 0 || parsed.CreatedAt < 0) {
-        return { fileInfo: null, error: ErrArguments }
+        return { fileInfo: null, error: new Error(ErrArguments) }
       }
       this.IsDir = parsed.IsDir
       this.Size = parsed.Size

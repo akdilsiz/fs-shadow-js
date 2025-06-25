@@ -78,7 +78,7 @@ class FileNode {
   FromObject(obj) {
     try {
       if (!(obj instanceof Object)) {
-        return { fileNode: null, error: ErrArguments }
+        return { fileNode: null, error: new Error(ErrArguments) }
       }
 
       this.Subs = []
@@ -107,12 +107,12 @@ class FileNode {
   Move(fromPath = new Path(), toPath = new Path()) {
     let toNode = this.Search(toPath.String())
     if (toNode === null) {
-      return { fileNode: null, error: ErrToFileNodeNotFound }
+      return { fileNode: null, error: new Error(ErrToFileNodeNotFound) }
     }
 
     for (let i = 0; i < toNode.Subs.length; i++) {
       if (fromPath.String() === toNode.Subs[i].Name) {
-        return { fileNode: null, error: ErrFileNodeExists }
+        return { fileNode: null, error: new Error(ErrFileNodeExists) }
       }
     }
 
@@ -128,7 +128,7 @@ class FileNode {
   Rename(fromPath = new Path(), toPath = new Path()) {
     const parentNode = this.Search(fromPath.ParentPath().String())
     if (parentNode === null) {
-      return { fileNode: null, error: ErrFileNodeNotFound }
+      return { fileNode: null, error: new Error(ErrFileNodeNotFound) }
     }
 
     for (let i = 0; i < parentNode.Subs; i++) {
@@ -139,7 +139,7 @@ class FileNode {
 
     const node = this.Search(fromPath.String())
     if (node === null) {
-      return { fileNode: null, error: ErrFileNodeNotFound }
+      return { fileNode: null, error: new Error(ErrFileNodeNotFound) }
     }
 
     node.Name = toPath.Name()
@@ -157,10 +157,10 @@ class FileNode {
   }
   _remove(parentNode = new FileNode(), value = '', searchField = '') {
     if (parentNode === null || parentNode.Name.length === 0) {
-      return { fileNode: null, error: ErrFileNodeNotFound}
+      return { fileNode: null, error: new Error(ErrFileNodeNotFound)}
     }
     if (parentNode.Subs.length === 0) {
-      return { fileNode: null, error: ErrSubsNodeNotFound }
+      return { fileNode: null, error: new Error(ErrSubsNodeNotFound) }
     }
     let lookupValue = '',
       deletedNode = null
@@ -179,7 +179,7 @@ class FileNode {
     }
 
     if (deletedNode === null) {
-      return { fileNode: null, error: ErrFileNodeNotFound}
+      return { fileNode: null, error: new Error(ErrFileNodeNotFound)}
     }
 
     return { fileNode: deletedNode, error: null }
@@ -202,7 +202,7 @@ class FileNode {
 
     for (let i = 0; i < parentNode.Subs.length; i++) {
       if (parentNode.Subs[i].Name === fromPath.Name()) {
-        return { fileNode: null, error: fromPath.IsDir() ? ErrFileExists : ErrFileNodeExists }
+        return { fileNode: null, error: fromPath.IsDir() ? new Error(ErrFileExists) : new Error(ErrFileNodeExists) }
       }
     }
 

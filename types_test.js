@@ -26,12 +26,15 @@ describe('Types Tests', () => {
 
   it('MetaData .ToJSON()', () => {
     const createdAt = new Date(Date.now()),
+      utcCreatedAt = new Date(Date.UTC(createdAt.getUTCFullYear(), createdAt.getUTCMonth(), createdAt.getUTCDate(), createdAt.getUTCHours(), createdAt.getUTCMinutes(), createdAt.getUTCSeconds(), createdAt.getUTCMilliseconds())),
       metaData = new MetaData(true,
         sha256('sumSHA256'),
         123,
         createdAt.getSeconds(),
-        'permission'),
-      jsonString = `{"is_dir":true,"sum":"${sha256('sumSHA256')}","size":123,"created_at":${createdAt.getSeconds()},"permission":"permission"}`
+        'permission')
+
+    metaData.SetUTCCreatedAt(utcCreatedAt.getSeconds())
+    const jsonString = `{"is_dir":true,"sum":"${sha256('sumSHA256')}","size":123,"created_at":${createdAt.getSeconds()},"permission":"permission","utc_created_at":${utcCreatedAt.getSeconds()}}`
 
     unitJS.assert.equal(jsonString, metaData.ToJSON())
   })
@@ -64,7 +67,7 @@ describe('Types Tests', () => {
       { metaData, error } = new MetaData().FromJSON(jsonString)
 
     unitJS.value(metaData).isNull()
-    unitJS.assert.equal(ErrArguments, error)
+    unitJS.assert.equal(ErrArguments, error.message)
   })
 
   it('Should be ErrArguments MetaData .FromJSON() if created_at is negative', () => {
@@ -72,7 +75,7 @@ describe('Types Tests', () => {
       { metaData, error } = new MetaData().FromJSON(jsonString)
 
     unitJS.value(metaData).isNull()
-    unitJS.assert.equal(ErrArguments, error)
+    unitJS.assert.equal(ErrArguments, error.message)
   })
 
   it('Should be ErrArguments MetaData is invalid size', () => {
@@ -85,7 +88,7 @@ describe('Types Tests', () => {
         createdAt.getSeconds(),
         'permission')
     })
-      .is(ErrArguments)
+      .is(new Error(ErrArguments))
   })
 
   it('Should be ErrArguments MetaData is invalid createdAt', () => {
@@ -96,7 +99,7 @@ describe('Types Tests', () => {
         -1,
         'permission')
     })
-      .is(ErrArguments)
+      .is(new Error(ErrArguments))
   })
 
   it('ExtraPayload is valid arguments', () => {
@@ -120,13 +123,16 @@ describe('Types Tests', () => {
   it('ExtraPayload .ToJSON()', () => {
     const uid = v4(),
       createdAt = new Date(Date.now()),
+      utcCreatedAt = new Date(Date.UTC(createdAt.getUTCFullYear(), createdAt.getUTCMonth(), createdAt.getUTCDate(), createdAt.getUTCHours(), createdAt.getUTCMinutes(), createdAt.getUTCSeconds(), createdAt.getUTCMilliseconds())),
       extraPayload = new ExtraPayload(uid,
         true,
         sha256('sumSHA256'),
         123,
         createdAt.getSeconds(),
-        'permission'),
-      jsonString = `{"UUID":"${uid}","IsDir":true,"Sum":"${sha256('sumSHA256')}","Size":123,"CreatedAt":${createdAt.getSeconds()},"Permission":"permission"}`
+        'permission')
+
+    extraPayload.SetUTCCreatedAt(utcCreatedAt.getSeconds())
+    const jsonString = `{"UUID":"${uid}","IsDir":true,"Sum":"${sha256('sumSHA256')}","Size":123,"CreatedAt":${createdAt.getSeconds()},"Permission":"permission","UTCCreatedAt":${utcCreatedAt.getSeconds()}}`
 
     unitJS.assert.equal(jsonString, extraPayload.ToJSON())
   })
@@ -161,7 +167,7 @@ describe('Types Tests', () => {
       { extraPayload, error } = new ExtraPayload().FromJSON(jsonString)
 
     unitJS.value(extraPayload).isNull()
-    unitJS.assert.equal(ErrArguments, error)
+    unitJS.assert.equal(ErrArguments, error.message)
   })
 
   it('Should be ErrArguments ExtraPayload .FromJSON() if created_at is negative', () => {
@@ -170,7 +176,7 @@ describe('Types Tests', () => {
       { extraPayload, error } = new ExtraPayload().FromJSON(jsonString)
 
     unitJS.value(extraPayload).isNull()
-    unitJS.assert.equal(ErrArguments, error)
+    unitJS.assert.equal(ErrArguments, error.message)
   })
 
   it('Should be ErrArguments ExtraPayload is invalid size', () => {
@@ -185,7 +191,7 @@ describe('Types Tests', () => {
         createdAt.getSeconds(),
         'permission')
     })
-      .is(ErrArguments)
+      .is(new Error(ErrArguments))
   })
 
   it('Should be ErrArguments ExtraPayload is invalid createdAt', () => {
@@ -197,6 +203,6 @@ describe('Types Tests', () => {
         -1,
         'permission')
     })
-      .is(ErrArguments)
+      .is(new Error(ErrArguments))
   })
 })

@@ -50,7 +50,8 @@ describe('FileNode Tests', () => {
           sum: 'sum',
           size: 1,
           created_at: 1,
-          permission: 'permission'
+          permission: 'permission',
+          utc_created_at: 1,
         }
       }),
       fileNodeJson = new FileNode(subs, 'node1', uUID, parentUUID, metaData).ToJSON()
@@ -72,7 +73,8 @@ describe('FileNode Tests', () => {
           sum: 'sum',
           size: 1,
           created_at: 2,
-          permission: 'permission'
+          permission: 'permission',
+          utc_created_at: 2,
         }
       }),
       { fileNode, error} = new FileNode().FromJSON(valueJson)
@@ -104,7 +106,8 @@ describe('FileNode Tests', () => {
           sum: 'sum',
           size: 1,
           created_at: 2,
-          permission: 'permission'
+          permission: 'permission',
+          utc_created_at: 2,
         }
       }),
       { fileNode, error} = new FileNode().FromJSON(valueJson)
@@ -188,7 +191,7 @@ describe('FileNode Tests', () => {
   it('Should be error FileNode .FromObject() is invalid object value', () => {
     const { fileNode, error} = new FileNode().FromObject('string')
 
-    unitJS.value(error).is(ErrArguments)
+    unitJS.value(error).is(new Error(ErrArguments))
     unitJS.value(fileNode).isNull()
   })
 
@@ -214,7 +217,7 @@ describe('FileNode Tests', () => {
       },
       { fileNode, error} = new FileNode().FromObject(value)
 
-    unitJS.value(error).is(ErrArguments)
+    unitJS.value(error).is(new Error(ErrArguments))
     unitJS.value(fileNode).isNull()
   })
 

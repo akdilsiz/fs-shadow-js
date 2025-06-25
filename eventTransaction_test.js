@@ -35,7 +35,7 @@ describe('EventTransaction Tests', () => {
         uUID,
         parentUUID,
         metaData)
-    }).is(ErrArguments)
+    }).is(new Error(ErrArguments))
   })
 
   it('EventTransaction .Encode()', () => {
@@ -91,7 +91,7 @@ describe('EventTransaction Tests', () => {
       { encoded, error } = eventTransaction.Encode()
 
     unitJS.value(encoded).isNull()
-    unitJS.value(error).is(ErrArguments)
+    unitJS.value(error).is(new Error(ErrArguments))
   })
 
   it('EventTransaction .Decode()', () => {
@@ -143,7 +143,7 @@ describe('EventTransaction Tests', () => {
       { encoded, error } = eventTransaction.Encode(),
       { eventTransaction: decodedEventTransaction, error: error2 } = new EventTransaction().Decode(encoded)
 
-    unitJS.value(error).is(ErrArguments)
+    unitJS.value(error).is(new Error(ErrArguments))
     unitJS.value(decodedEventTransaction).isNull()
     unitJS.value(error2).isInstanceOf(Error)
   })
@@ -167,7 +167,7 @@ describe('EventTransaction Tests', () => {
       { eventTransaction: decodedEventTransaction, error: error2 } = new EventTransaction().Decode(encoded)
 
     unitJS.value(decodedEventTransaction).isNull()
-    unitJS.value(error2).is(ErrArguments)
+    unitJS.value(error2).is(new Error(ErrArguments))
   })
 
   it('EventTransaction .ToFileNode()', () => {
