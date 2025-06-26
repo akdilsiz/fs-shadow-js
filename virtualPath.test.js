@@ -1,6 +1,6 @@
-const unitJS = require('unit.js')
-const VirtualPath = require('./virtualPath')
-const { FileInfo } = require('./path')
+import unitJS from 'unit.js'
+import VirtualPath from './virtualPath.js'
+import { FileInfo } from './path.js'
 
 describe('VirtualPath Tests', () => {
   it('all', () => {

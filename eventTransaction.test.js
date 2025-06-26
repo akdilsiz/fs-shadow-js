@@ -1,24 +1,25 @@
-const unitJS = require('unit.js')
-const { v4 } = require('uuid')
-const { encode } = require('@msgpack/msgpack')
-const { ErrArguments } = require('./errors')
-const { MetaData } = require('./types')
-const EventTransaction = require('./eventTransaction')
-const { EventTypes } = require('./event')
-const FileNode = require('./fileNode')
+import unitJS from 'unit.js'
+import { v4 } from 'uuid'
+import { encode } from '@msgpack/msgpack'
+import { ErrArguments } from './errors.js'
+import { MetaData } from './types.js'
+import EventTransaction from './eventTransaction.js'
+import { Create } from './event.js'
+import FileNode from './fileNode.js'
+
 describe('EventTransaction Tests', () => {
   it('EventTransaction with valid arguments', () => {
     const uUID = v4(),
       parentUUID= v4(),
       metaData = new MetaData(false, 'sum', 1, 1, 'permission'),
       eventTransaction = new EventTransaction('transaction1',
-        EventTypes.Create,
+        Create,
         uUID,
         parentUUID,
         metaData)
 
     unitJS.assert.equal('transaction1', eventTransaction.Name)
-    unitJS.assert.equal(EventTypes.Create, eventTransaction.Type)
+    unitJS.assert.equal(Create, eventTransaction.Type)
     unitJS.assert.equal(uUID, eventTransaction.UUID)
     unitJS.assert.equal(parentUUID, eventTransaction.ParentUUID)
     unitJS.assert.equal(metaData, eventTransaction.Meta)
@@ -43,7 +44,7 @@ describe('EventTransaction Tests', () => {
       parentUUID= v4(),
       metaData = new MetaData(false, 'sum', 1, 1, 'permission'),
       eventTransaction = new EventTransaction('transaction1',
-        EventTypes.Create,
+        Create,
         uUID,
         parentUUID,
         metaData),
@@ -72,7 +73,7 @@ describe('EventTransaction Tests', () => {
     const uUID = v4(),
       parentUUID= v4(),
       eventTransaction = new EventTransaction('transaction1',
-        EventTypes.Create,
+        Create,
         uUID,
         parentUUID,
         {
@@ -99,7 +100,7 @@ describe('EventTransaction Tests', () => {
       parentUUID= v4(),
       metaData = new MetaData(false, 'sum', 1, 1, 'permission'),
       eventTransaction = new EventTransaction('transaction1',
-        EventTypes.Create,
+        Create,
         uUID,
         parentUUID,
         metaData),
@@ -132,7 +133,7 @@ describe('EventTransaction Tests', () => {
     const uUID = v4(),
       parentUUID= v4(),
       eventTransaction = new EventTransaction('transaction1',
-        EventTypes.Create,
+        Create,
         uUID,
         parentUUID,
         {
@@ -153,7 +154,7 @@ describe('EventTransaction Tests', () => {
       parentUUID= v4(),
       encoded= encode({
         Name: 'transaction1',
-        Type: EventTypes.Create,
+        Type: Create,
         UUID: uUID,
         ParentUUID: parentUUID,
         Meta: {
@@ -176,7 +177,7 @@ describe('EventTransaction Tests', () => {
       metaData = new MetaData(false, 'sum', 1, 1, 'permission'),
       fileNode = new FileNode([], 'transaction1', uUID, parentUUID, metaData),
       eventTransactionFileNode = new EventTransaction('transaction1',
-        EventTypes.Create,
+        Create,
         uUID,
         parentUUID,
         metaData).ToFileNode()

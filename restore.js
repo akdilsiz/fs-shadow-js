@@ -1,10 +1,10 @@
-const FileNode = require('./fileNode')
-const { EventTypes } = require('./event')
-const EventTransaction = require('./eventTransaction')
-const { VirtualTree } = require('./watcherVirtual')
-const { FMap } = require('./fmap')
+import FileNode from'./fileNode.js'
+import { Remove, Rename, Create, Move } from './event.js'
+import EventTransaction from './eventTransaction.js'
+import { VirtualTree } from './watcherVirtual.js'
+import { FMap } from './fmap.js'
 
-const CreateFileNodeWithTransactions = (transactions = []) => {
+export const CreateFileNodeWithTransactions = async (transactions = []) => {
   const table = new FMap()
 
   let root = new FileNode(),
@@ -13,27 +13,27 @@ const CreateFileNodeWithTransactions = (transactions = []) => {
   for (let i = 0; i < transactions.length; i++) {
     const { eventTransaction, error } = new EventTransaction().Decode(transactions[i])
     if (error) {
-      return { fileNode: null, error: error }
+      return Promise.reject(error)
     }
 
     const fileNode = eventTransaction.ToFileNode()
-    if (fileNode.ParentUUID === "") {
+    if (fileNode.ParentUUID === '') {
       root = fileNode
     }
 
     switch (eventTransaction.Type) {
-      case EventTypes.Create:
+      case Create:
         table.append(fileNode.UUID, fileNode)
         if (table.has(fileNode.ParentUUID)) {
           table.getLast(fileNode.ParentUUID).Subs.push(fileNode)
         }
         break
-      case EventTypes.Rename:
+      case Rename:
         currentNode = table.getLast(fileNode.UUID)
         currentNode.Name = fileNode.Name
         currentNode.Meta = fileNode.Meta
         break
-      case EventTypes.Move:
+      case Move:
         currentNode = table.getLast(fileNode.UUID)
         root.RemoveByUUID(currentNode.UUID, currentNode.ParentUUID)
         if (table.has(fileNode.ParentUUID)) {
@@ -41,7 +41,7 @@ const CreateFileNodeWithTransactions = (transactions = []) => {
           table.getLast(fileNode.ParentUUID).Subs.push(currentNode)
         }
         break
-      case EventTypes.Remove:
+      case Remove:
         root.RemoveByUUID(fileNode.UUID, fileNode.ParentUUID)
         break
     }
@@ -51,21 +51,12 @@ const CreateFileNodeWithTransactions = (transactions = []) => {
 
   table.clear()
 
-  return { fileNode: root, error: null }
+  return { fileNode: root }
 }
 
-const RestoreWatcherWithTransactions = (transactions = [], tw = new VirtualTree()) => {
-  const { fileNode, error } = CreateFileNodeWithTransactions(transactions)
-  if (error) {
-    return error
-  }
-
+export const RestoreWatcherWithTransactions = async (transactions = [], tw = new VirtualTree()) => {
+  const { fileNode } = await CreateFileNodeWithTransactions(transactions)
   tw.Restore(fileNode)
 
   return null
-}
-
-module.exports = {
-  CreateFileNodeWithTransactions,
-  RestoreWatcherWithTransactions
 }

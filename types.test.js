@@ -1,8 +1,9 @@
-const unitJS = require('unit.js')
-const { sha256 } = require('js-sha256')
-const { v4 } = require('uuid')
-const { ErrArguments } = require('./errors')
-const { DateTypes, MetaData, ExtraPayload } = require('./types')
+import unitJS from 'unit.js'
+import { sha256 } from 'js-sha256'
+import { v4 } from 'uuid'
+import { ErrArguments } from './errors.js'
+import { DateTypes, MetaData, ExtraPayload } from './types.js'
+
 describe('Types Tests', () => {
   it('DateTypes', () => {
     unitJS.assert.equal(DateTypes.MILLI, 0)

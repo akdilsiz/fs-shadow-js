@@ -1,10 +1,6 @@
-const { ExtraPayload } = require('./types')
-const { NewVirtualPathWatcher } = require('./watcherVirtual')
+import { ExtraPayload } from './types.js'
+import { NewVirtualPathWatcher } from './watcherVirtual.js'
 
-const NewVirtualWatcher = (rootUUID, fsPath = '', extra = new ExtraPayload()) => {
+export const NewVirtualWatcher = (rootUUID, fsPath = '', extra = new ExtraPayload()) => {
   return NewVirtualPathWatcher(rootUUID, fsPath, extra)
-}
-
-module.exports = {
-  NewVirtualWatcher
 }

@@ -1,26 +1,27 @@
-const unitJS = require('unit.js')
-const { ErrArguments } = require('./errors')
-const { EventTypes, Event } = require('./event')
-const VirtualPath = require('./virtualPath')
+import unitJS from 'unit.js'
+import { ErrArguments } from './errors.js'
+import { Remove, Write, Create, Rename, Move, Event } from './event.js'
+import VirtualPath from './virtualPath.js'
+
 describe('Event Tests', () => {
   it('EventTypes', () => {
-    unitJS.assert.equal('remove', EventTypes.Remove)
-    unitJS.assert.equal('write', EventTypes.Write)
-    unitJS.assert.equal('create', EventTypes.Create)
-    unitJS.assert.equal('rename', EventTypes.Rename)
-    unitJS.assert.equal('move', EventTypes.Move)
+    unitJS.assert.equal('remove', Remove)
+    unitJS.assert.equal('write', Write)
+    unitJS.assert.equal('create', Create)
+    unitJS.assert.equal('rename', Rename)
+    unitJS.assert.equal('move', Move)
   })
 
   it('EventTransaction with valid arguments', () => {
     const from = new VirtualPath('from', false),
       to = new VirtualPath('to', true),
       event = new Event(
-        EventTypes.Create,
+        Create,
         from,
         to
       )
 
-    unitJS.assert.equal(EventTypes.Create, event.Type)
+    unitJS.assert.equal(Create, event.Type)
     unitJS.assert.equal(from, event.FromPath)
     unitJS.assert.equal(to, event.ToPath)
   })
@@ -42,7 +43,7 @@ describe('Event Tests', () => {
     const from = new VirtualPath('from', false),
       to = new VirtualPath('to', true),
       event = new Event(
-        EventTypes.Create,
+        Create,
         from,
         to
       )
@@ -54,7 +55,7 @@ describe('Event Tests', () => {
     const from = new VirtualPath('from', false),
       to = new VirtualPath('to', true),
       event = new Event(
-        EventTypes.Rename,
+        Rename,
         from,
         to
       )

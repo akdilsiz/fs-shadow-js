@@ -1,12 +1,12 @@
-const unitJS = require('unit.js')
-const {
+import unitJS from 'unit.js'
+import {
   ErrArguments,
   ErrToFileNodeNotFound,
   ErrFileNodeExists,
   ErrFileNodeNotFound,
   ErrSubsNodeNotFound,
   ErrFileExists
-} = require('./errors')
+} from './errors.js'
 
 describe('Errors Tests', () => {
   it('Arguments Error', () => {

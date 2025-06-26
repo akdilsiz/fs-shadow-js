@@ -1,4 +1,4 @@
-class FMap {
+export class FMap {
   m = new Map()
 
   has(key) {
@@ -59,8 +59,4 @@ class FMap {
   clear() {
     this.m.clear()
   }
-}
-
-module.exports = {
-  FMap,
 }

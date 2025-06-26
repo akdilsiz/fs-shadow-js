@@ -1,10 +1,10 @@
-const VirtualPath = require('./virtualPath')
-const { ExtraPayload, MetaData } = require('./types')
-const { Event, EventTypes } = require('./event')
-const FileNode = require('./fileNode')
-const EventTransaction = require('./eventTransaction')
+import VirtualPath from './virtualPath.js'
+import { ExtraPayload, MetaData } from './types.js'
+import { Remove, Create, Rename, Move, Event } from './event.js'
+import FileNode from'./fileNode.js'
+import EventTransaction from './eventTransaction.js'
 
-class VirtualTree {
+export class VirtualTree {
   FileTree = new FileNode()
   Path = new VirtualPath()
   ParentPath = new VirtualPath()
@@ -28,27 +28,27 @@ class VirtualTree {
     }
 
     switch (event.Type) {
-      case EventTypes.Remove:
+      case Remove:
         response = this.Remove(event.FromPath)
         node = response.fileNode
         error = response.error
         break
-      // case EventTypes.Write:
+      // case Write:
       //   response = this.Write(event.FromPath)
       //   node = response.fileNode
       //   error = response.error
       //   break
-      case EventTypes.Create:
+      case Create:
         response = this.Create(event.FromPath, bExtra)
         node = response.fileNode
         error = response.error
         break
-      case EventTypes.Rename:
+      case Rename:
         response = this.Rename(event.FromPath, event.ToPath)
         node = response.fileNode
         error = response.error
         break
-      case EventTypes.Move:
+      case Move:
         response = this.Move(event.FromPath, event.ToPath)
         node = response.fileNode
         error = response.error
@@ -124,12 +124,12 @@ class VirtualTree {
     return { fileNode: null, error: null }
   }
 
-  MakeEventTransaction(node = new FileNode(), event = EventTypes.Create) {
+  MakeEventTransaction(node = new FileNode(), event = Create) {
     return  new EventTransaction(node.Name, event, node.UUID, node.ParentUUID, node.Meta)
   }
 }
 
-const NewVirtualPathWatcher = (uUID = '', virtualPath = '', extra = new ExtraPayload()) => {
+export const NewVirtualPathWatcher = async (uUID = '', virtualPath = '', extra = new ExtraPayload()) => {
   const path = new VirtualPath(virtualPath, true),
     root = new FileNode([],
       path.Name(),
@@ -137,17 +137,12 @@ const NewVirtualPathWatcher = (uUID = '', virtualPath = '', extra = new ExtraPay
       '',
       new MetaData(true)),
     virtualTree = new VirtualTree(root, path, path.ParentPath()),
-    e = new Event(EventTypes.Create, path),
+    e = new Event(Create, path),
     { eventTransaction, error } = virtualTree.Handler(e, extra)
 
   if (error) {
-    return { watcher: null, eventTransaction: null, error: error }
+    return Promise.reject(error)
   }
 
-  return { watcher: virtualTree, eventTransaction: eventTransaction, error: null }
-}
-
-module.exports = {
-  VirtualTree,
-  NewVirtualPathWatcher
+  return { watcher: virtualTree, eventTransaction: eventTransaction }
 }

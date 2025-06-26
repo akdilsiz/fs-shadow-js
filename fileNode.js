@@ -1,14 +1,14 @@
-const { MetaData, ExtraPayload } = require('./types')
-const { Path, Separator } = require('./path')
-const {
+import { MetaData, ExtraPayload } from './types.js'
+import { Path, Separator } from './path.js'
+import {
   ErrToFileNodeNotFound,
   ErrFileNodeExists,
   ErrFileNodeNotFound,
   ErrSubsNodeNotFound,
   ErrFileExists, ErrArguments
-} = require('./errors')
+} from './errors.js'
 
-class FileNode {
+export default class FileNode {
   Subs = []
   Name = ''
   UUID = ''
@@ -193,7 +193,7 @@ class FileNode {
     this.Meta.Permission = extra.Permission
   }
   Create(fromPath = new Path(), absolutePath = new Path()) {
-    let sum = '', error = null
+    let sum = ''
 
     const parentNode = this.Search(fromPath.ParentPath().String())
     if (parentNode === null) {
@@ -263,5 +263,3 @@ class FileNode {
     return null
   }
 }
-
-module.exports = FileNode

@@ -1,14 +1,14 @@
 {
   "name": "fs-shadow-js",
-  "version": "1.2.0",
+  "version": "2.0.0",
   "description": "FS-Shadow Javascript",
-  "main": "index.js",
-  "type": "commonjs",
+  "main": "watcher.js",
+  "type": "module",
   "scripts": {
-    "test": "export NODE_ENV=test || SET \"NODE_ENV=test\" && mocha",
-    "testAll": "export NODE_ENV=test || SET \"NODE_ENV=test\" && mocha *_test.js",
-    "test:coverage": "export NODE_ENV=test || SET \"NODE_ENV=test\" && nyc --reporter=text mocha",
-    "test:coverageAll": "export NODE_ENV=test || SET \"NODE_ENV=test\" && nyc --reporter=text mocha  *_test.js"
+    "test": "export NODE_ENV=test || SET \"NODE_ENV=test\" && mocha --require esm --timeout 7000",
+    "test:coverage": "export NODE_ENV=test || SET \"NODE_ENV=test\" && export NODE_OPTIONS='--experimental-loader @istanbuljs/esm-loader-hook --no-warnings' || SET \"NODE_OPTIONS=--experimental-loader @istanbuljs/esm-loader-hook --no-warnings\" && nyc --reporter=text mocha --require esm --timeout 7000 --experimental-modules",
+    "testAll": "export NODE_ENV=test || SET \"NODE_ENV=test\" && mocha --require esm --timeout 7000 --experimental-modules '*.test.js'",
+    "test:coverageAll": "export NODE_ENV=test || SET \"NODE_ENV=test\" && export NODE_OPTIONS='--experimental-loader @istanbuljs/esm-loader-hook --no-warnings' || SET \"NODE_OPTIONS=--experimental-loader @istanbuljs/esm-loader-hook --no-warnings\" && nyc --reporter=text mocha --require esm --timeout 7000 '*.test.js'"
   },
   "repository": {
     "type": "git",
@@ -29,7 +29,9 @@
     "mocha": "^11.7.1",
     "nyc": "^17.1.0",
     "unit.js": "^2.1.1",
-    "js-sha256": "^0.11.1"
+    "js-sha256": "^0.11.1",
+    "@istanbuljs/esm-loader-hook": "^0.3.0",
+    "esm": "*"
   },
   "dependencies": {
     "@msgpack/msgpack": "^3.1.2",

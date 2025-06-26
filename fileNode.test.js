@@ -1,9 +1,9 @@
-const unitJS = require('unit.js')
-const { v4 } = require('uuid')
-const { ErrArguments } = require('./errors')
-const { MetaData, ExtraPayload } = require('./types')
-const FileNode = require('./fileNode')
-const VirtualPath = require('./virtualPath')
+import unitJS from 'unit.js'
+import { v4 } from 'uuid'
+import { ErrArguments } from './errors.js'
+import { MetaData, ExtraPayload } from './types.js'
+import FileNode from './fileNode.js'
+import VirtualPath from './virtualPath.js'
 
 const makeDummyTree = () => {
   const rootUUID = v4()
@@ -260,6 +260,7 @@ describe('FileNode Tests', () => {
     const { fileNode: renamedFileNode, error: error3 } = root.Rename(eventFilePath, renameEventFilePath)
     unitJS.value(error3).isNull()
     unitJS.assert.notEqual(oldName, fileNode.Name)
+    unitJS.assert.equal(renamedFileNode.Name, 'test-2.txt')
 
     // Remove
     const { fileNode: removedFileNode, error: error4 } = root.Remove(eventFolderPath)
