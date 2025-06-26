@@ -1,18 +1,18 @@
-const { encode, decode } = require('@msgpack/msgpack')
-const { ErrArguments } = require('./errors')
-const { EventTypes } = require('./event')
-const { MetaData } = require('./types')
-const FileNode = require('./fileNode')
+import { encode, decode } from '@msgpack/msgpack'
+import { ErrArguments } from './errors.js'
+import { Create, ValidEvents } from './event.js'
+import { MetaData } from './types.js'
+import FileNode from './fileNode.js'
 
-class EventTransaction {
+export default class EventTransaction {
   Name = ''
-  Type = EventTypes.Create
+  Type = Create
   UUID = ''
   ParentUUID = ''
   Meta = new MetaData()
-  constructor(name = '', type = EventTypes.Create, uUID = '',
+  constructor(name = '', type = Create, uUID = '',
               parentUUID = '', meta = new MetaData()) {
-    if (Object.values(EventTypes).indexOf(type) === -1) {
+    if (Object.values(ValidEvents).indexOf(type) === -1) {
       throw new Error(ErrArguments)
     }
 
@@ -73,5 +73,3 @@ class EventTransaction {
     return new FileNode([], this.Name, this.UUID, this.ParentUUID, this.Meta)
   }
 }
-
-module.exports = EventTransaction

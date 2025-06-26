@@ -1,16 +1,18 @@
-const { ErrArguments } = require('./errors')
+import { ErrArguments } from './errors.js'
 
-const DateTypes = {
+export const DateTypes = {
     MILLI: 0,
     NANO: 1
 }
-class MetaData {
+
+export class MetaData {
   IsDir = false
   // Sha256 hash sum
   Sum = ''
   Size = 0
   // Unix time
   CreatedAt = 0
+  // UTC Unix time
   UTCCreatedAt = 0
   Permission = ''
 
@@ -103,7 +105,7 @@ class MetaData {
   }
 }
 
-class ExtraPayload {
+export class ExtraPayload {
   UUID = ''
   IsDir = false
   // Sha256 hash sum
@@ -227,10 +229,4 @@ class ExtraPayload {
       UTCCreatedAt: this.UTCCreatedAt,
     }
   }
-}
-
-module.exports = {
-  DateTypes,
-  MetaData,
-  ExtraPayload
 }

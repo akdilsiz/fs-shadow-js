@@ -1,6 +1,6 @@
-const unitJS = require('unit.js')
-const { ErrArguments } = require('./errors')
-const { Separator, Path, FileInfo } = require('./path')
+import unitJS from 'unit.js'
+import { ErrArguments } from './errors.js'
+import { Separator, Path, FileInfo } from './path.js'
 
 describe('Seperator', () => {
   it('valid', () => {

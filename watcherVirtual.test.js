@@ -1,13 +1,12 @@
-const unitJS = require('unit.js')
-const { v4 } = require('uuid')
-const { ErrFileNodeExists, ErrFileNodeNotFound} = require('./errors')
-const VirtualPath = require('./virtualPath')
-const { ExtraPayload, MetaData } = require('./types')
-const { Watcher } = require('./watcher')
-const { Event, EventTypes } = require('./event')
-const EventTransaction = require('./eventTransaction')
-const FileNode = require('./fileNode')
-const { VirtualTree, NewVirtualPathWatcher } = require('./watcherVirtual')
+import unitJS from 'unit.js'
+import { v4 } from 'uuid'
+import { ErrFileNodeExists, ErrFileNodeNotFound} from './errors.js'
+import VirtualPath from './virtualPath.js'
+import { ExtraPayload, MetaData } from './types.js'
+import { Remove, Write, Create, Rename, Move, Event } from './event.js'
+import EventTransaction from './eventTransaction.js'
+import FileNode from'./fileNode.js'
+import { VirtualTree, NewVirtualPathWatcher } from './watcherVirtual.js'
 
 const makeDummyTree = () => {
   const rootUUID = v4()
@@ -57,19 +56,19 @@ describe('VirtualTree Tests', () => {
       root = new FileNode([], rootPath.Name(), rootUUID, '', new MetaData(true)),
       virtualTree = new VirtualTree(root, path, path.ParentPath())
 
-    const { eventTransaction, error } = virtualTree.Handler(new Event(EventTypes.Create, eventFolderPath, folderPath), new ExtraPayload(v4()))
+    const { eventTransaction, error } = virtualTree.Handler(new Event(Create, eventFolderPath, folderPath), new ExtraPayload(v4()))
 
     unitJS.value(error).isNull()
     unitJS.value(eventTransaction).isInstanceOf(EventTransaction)
     unitJS.assert.equal(1, virtualTree.FileTree.Subs.length)
 
-    const { eventTransaction: eventTransaction2, error: error2 } = virtualTree.Handler(new Event(EventTypes.Create, eventFilePath, filePath), new ExtraPayload(v4()))
+    const { eventTransaction: eventTransaction2, error: error2 } = virtualTree.Handler(new Event(Create, eventFilePath, filePath), new ExtraPayload(v4()))
 
     unitJS.value(error2).isNull()
     unitJS.value(eventTransaction2).isInstanceOf(EventTransaction)
     unitJS.assert.equal(2, virtualTree.FileTree.Subs.length)
 
-    const { eventTransaction: eventTransaction3, error: error3 } = virtualTree.Handler(new Event(EventTypes.Rename, eventFilePath, renameEventFilePath))
+    const { eventTransaction: eventTransaction3, error: error3 } = virtualTree.Handler(new Event(Rename, eventFilePath, renameEventFilePath))
 
     unitJS.value(error3).isNull()
     unitJS.value(eventTransaction3).isInstanceOf(EventTransaction)
@@ -77,13 +76,13 @@ describe('VirtualTree Tests', () => {
     unitJS.assert.equal('test-2.txt', searchedNode.Name)
     unitJS.assert.equal(rootUUID, searchedNode.ParentUUID)
 
-    const { eventTransaction: eventTransaction4, error: error4 } = virtualTree.Handler(new Event(EventTypes.Create, moveFolderEventPath, moveFolderPath), new ExtraPayload(v4()))
+    const { eventTransaction: eventTransaction4, error: error4 } = virtualTree.Handler(new Event(Create, moveFolderEventPath, moveFolderPath), new ExtraPayload(v4()))
 
     unitJS.value(error4).isNull()
     unitJS.value(eventTransaction4).isInstanceOf(EventTransaction)
     unitJS.assert.equal(3, virtualTree.FileTree.Subs.length)
 
-    const { eventTransaction: eventTransaction5, error: error5  } = virtualTree.Handler(new Event(EventTypes.Move, renameEventFilePath, moveFolderEventPath))
+    const { eventTransaction: eventTransaction5, error: error5  } = virtualTree.Handler(new Event(Move, renameEventFilePath, moveFolderEventPath))
 
     unitJS.value(error5).isNull()
     unitJS.value(eventTransaction5).isInstanceOf(EventTransaction)
@@ -91,33 +90,33 @@ describe('VirtualTree Tests', () => {
     unitJS.assert.equal(eventTransaction4.UUID, searched.ParentUUID)
     unitJS.value(virtualTree.SearchByPath(renameEventFilePath.String())).isNull()
 
-    const { eventTransaction: eventTransaction6, error: error6 } = virtualTree.Handler(new Event(EventTypes.Remove, eventFolderPath))
+    const { eventTransaction: eventTransaction6, error: error6 } = virtualTree.Handler(new Event(Remove, eventFolderPath))
 
     unitJS.value(error6).isNull()
     unitJS.value(eventTransaction6).isInstanceOf(EventTransaction)
     unitJS.value(virtualTree.SearchByUUID(eventTransaction6.UUID)).isNull()
 
-    const { eventTransaction: eventTransaction7, error: error7 } = virtualTree.Handler(new Event(EventTypes.Write, movedFilePath))
+    const { eventTransaction: eventTransaction7, error: error7 } = virtualTree.Handler(new Event(Write, movedFilePath))
 
     unitJS.value(error7).isInstanceOf(Error)
     unitJS.value(eventTransaction7).isNull()
 
-    const { eventTransaction: eventTransaction8, error: error8 } = virtualTree.Handler(new Event(EventTypes.Create, moveFolderEventPath, moveFolderPath), new ExtraPayload(v4()))
+    const { eventTransaction: eventTransaction8, error: error8 } = virtualTree.Handler(new Event(Create, moveFolderEventPath, moveFolderPath), new ExtraPayload(v4()))
 
     unitJS.value(error8).is(new Error(ErrFileNodeExists))
     unitJS.value(eventTransaction8).isNull()
 
-    const { eventTransaction: eventTransaction9, error: error9 } = virtualTree.Handler(new Event(EventTypes.Remove, eventFolderPath))
+    const { eventTransaction: eventTransaction9, error: error9 } = virtualTree.Handler(new Event(Remove, eventFolderPath))
 
     unitJS.value(error9).is(new Error(ErrFileNodeNotFound))
     unitJS.value(eventTransaction9).isNull()
 
-    const { eventTransaction: eventTransaction10, error: error10 } = virtualTree.Handler(new Event(EventTypes.Rename, eventFilePath, renameEventFilePath))
+    const { eventTransaction: eventTransaction10, error: error10 } = virtualTree.Handler(new Event(Rename, eventFilePath, renameEventFilePath))
 
     unitJS.value(error10).is(new Error(ErrFileNodeNotFound))
     unitJS.value(eventTransaction10).isNull()
 
-    const { eventTransaction: eventTransaction11, error: error11  } = virtualTree.Handler(new Event(EventTypes.Move, renameEventFilePath, moveFolderEventPath))
+    const { eventTransaction: eventTransaction11, error: error11  } = virtualTree.Handler(new Event(Move, renameEventFilePath, moveFolderEventPath))
 
     unitJS.value(error11).is(new Error(ErrFileNodeNotFound))
     unitJS.value(eventTransaction11).isNull()
@@ -138,10 +137,8 @@ describe('VirtualTree Tests', () => {
 })
 
 describe('NewVirtualWatcher Tests', () => {
-  it('initialize ', () => {
-    const virtualWatcher = NewVirtualPathWatcher('/FSShadow')
-
-    unitJS.value(virtualWatcher.error).isNull()
+  it('initialize ', async () => {
+    const virtualWatcher = await NewVirtualPathWatcher('/FSShadow')
     unitJS.value(virtualWatcher.watcher).isInstanceOf(VirtualTree)
   })
 })

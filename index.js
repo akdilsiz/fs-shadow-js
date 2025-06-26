@@ -1,6 +1,3 @@
-class FSShadow {
-    constructor() {
-    }
+export class FSShadow {
+    constructor() {}
 }
-
-module.exports = FSShadow

@@ -1,7 +1,7 @@
-const { ErrArguments } = require('./errors')
-const Separator = '/'
+import { ErrArguments } from './errors.js'
+export const Separator = '/'
 
-class Path {
+export class Path {
   IsVirtual() {
     return false
   }
@@ -28,7 +28,7 @@ class Path {
   }
 }
 
-class FileInfo {
+export class FileInfo {
   IsDir = false
   Size = 0
   CreatedAt = 0
@@ -67,10 +67,4 @@ class FileInfo {
       return { fileInfo: null, error: e }
     }
   }
-}
-
-module.exports = {
-  Separator,
-  Path,
-  FileInfo
 }

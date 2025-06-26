@@ -1,6 +1,6 @@
-const { Separator, Path, FileInfo } = require("./path");
+import { Separator, Path, FileInfo } from './path.js'
 
-class VirtualPath extends Path {
+export default class VirtualPath extends Path {
   p = ''
   isDir = false
   constructor(p = '', isDir = false) {
@@ -45,5 +45,3 @@ class VirtualPath extends Path {
     return new VirtualPath(eventAbsolutePath, this.IsDir())
   }
 }
-
-module.exports = VirtualPath
