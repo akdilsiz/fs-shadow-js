@@ -23,6 +23,9 @@ export class Event {
     this.ToPath = toPath
   }
 
+  /**
+   * @return {string}
+   */
   String() {
     let s = `event ${this.FromPath.String()}`
     if (this.Type === Rename) {

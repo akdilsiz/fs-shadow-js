@@ -175,7 +175,6 @@ export default class FileNode {
   /**
    * @param {Path} fromPath
    * @return {Promise<{fileNode: FileNode}>}
-   * @private
    */
   Remove(fromPath = new Path()) {
     const fileName = fromPath.Name(),
@@ -234,7 +233,7 @@ export default class FileNode {
 
   /**
    * @param {ExtraPayload} extra
-   * @return void
+   * @return {void}
    */
   UpdateWithExtra(extra = new ExtraPayload()) {
     this.UUID = extra.UUID

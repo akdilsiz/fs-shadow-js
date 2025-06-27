@@ -42,6 +42,10 @@ export class FileInfo {
     this.CreatedAt = createdAt
     this.Permission = permission
   }
+
+  /**
+   * @return {string}
+   */
   ToJSON() {
     return JSON.stringify({
       IsDir: this.IsDir,
@@ -51,6 +55,10 @@ export class FileInfo {
     })
   }
 
+  /**
+   * @param {string} jsonString
+   * @return {{fileInfo: ?FileInfo, error: ?Error}}
+   */
   FromJSON(jsonString) {
     try {
       const parsed = JSON.parse(jsonString)

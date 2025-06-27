@@ -15,7 +15,10 @@ export class VirtualTree {
   }
 
   /**
-   * params event = new Event(), extra = new ExtraPayload()
+   * @param {Event} event
+   * @param {?ExtraPayload} extra
+   * @return {Promise<{eventTransaction: EventTransaction}>}
+   * @constructor
    */
   async Handler(event, extra) {
     let node = new FileNode(),
@@ -54,24 +57,46 @@ export class VirtualTree {
 
     return { eventTransaction: this.MakeEventTransaction(node, event.Type) }
   }
+
+  /**
+   * @param {FileNode} tree
+   * @return {VirtualTree}
+   */
   Restore(tree = new FileNode()) {
     this.FileTree = tree
 
     return this
   }
 
+  /**
+   * @param {string} p
+   * @return {?FileNode}
+   */
   SearchByPath(p = '') {
     return this.FileTree.Search(p)
   }
-  SearchByUUID(uUID = '') {
+
+  /**
+   * @param {string} uUID
+   * @return {?FileNode}
+   */
+  SearchByUUID(uUID) {
     return this.FileTree.SearchByUUID(uUID)
   }
+
   PrintTree(label = '') {
     console.log(`----------------${label}----------------`)
     console.log(JSON.stringify(this.FileTree.ToObject(), null, 2))
     console.log(`----------------${label}----------------\n\n`)
   }
-  async Create(fromPath = new VirtualPath(), extra = new ExtraPayload()) {
+
+  /**
+   * @param {VirtualPath} fromPath
+   * @param {?ExtraPayload} extra
+   * @return {Promise<{fileNode: FileNode}>}
+   * @constructor
+   */
+  async Create(fromPath, extra) {
     const eventPath = fromPath.ExcludePath(this.ParentPath),
       { fileNode } = await this.FileTree.Create(eventPath, fromPath)
 
@@ -79,32 +104,62 @@ export class VirtualTree {
 
     return { fileNode: fileNode }
   }
-  async Remove(fromPath = new VirtualPath()) {
+
+  /**
+   * @param {VirtualPath} fromPath
+   * @return {Promise<{fileNode: FileNode}>}
+   */
+  async Remove(fromPath) {
     const { fileNode } = await this.FileTree.Remove(fromPath.ExcludePath(this.ParentPath))
 
     return { fileNode: fileNode }
   }
-  async Rename(fromPath = new VirtualPath(), toPath = new VirtualPath()) {
+
+  /**
+   * @param {VirtualPath} fromPath
+   * @param {VirtualPath} toPath
+   * @return {Promise<{fileNode: FileNode}>}
+   */
+  async Rename(fromPath, toPath) {
     const { fileNode } = await this.FileTree.Rename(fromPath.ExcludePath(this.ParentPath),
       toPath.ExcludePath(this.ParentPath))
 
     return { fileNode: fileNode }
   }
-  async Move(fromPath = new VirtualPath(), toPath = new VirtualPath()) {
+
+  /**
+   * @param {VirtualPath} fromPath
+   * @param {VirtualPath} toPath
+   * @return {Promise<{fileNode: FileNode}>}
+   */
+  async Move(fromPath, toPath) {
     const { fileNode } = await this.FileTree.Move(fromPath.ExcludePath(this.ParentPath),
       toPath.ExcludePath(this.ParentPath))
 
     return { fileNode: fileNode }
   }
-  async Write(_fromPath = new VirtualPath()) {
+
+  async Write(_fromPath) {
     return Promise.reject(new Error('unhandled event'))
   }
 
+  /**
+   * @param {FileNode} node
+   * @param {string|Remove,Write,Create,Rename,Move} event
+   * @return {EventTransaction}
+   */
   MakeEventTransaction(node = new FileNode(), event = Create) {
     return new EventTransaction(node.Name, event, node.UUID, node.ParentUUID, node.Meta)
   }
 }
 
+/**
+ * @param uUID
+ * @param virtualPath
+ * @param extra
+ * @return {Promise<{watcher: VirtualTree, eventTransaction: EventTransaction>}
+ * @constructor
+ */
 export const NewVirtualPathWatcher = async (uUID = '', virtualPath = '', extra = new ExtraPayload()) => {
   const path = new VirtualPath(virtualPath, true),
     root = new FileNode([],
@@ -114,11 +169,7 @@ export const NewVirtualPathWatcher = async (uUID = '', virtualPath = '', extra =
       new MetaData(true)),
     virtualTree = new VirtualTree(root, path, path.ParentPath()),
     e = new Event(Create, path),
-    { eventTransaction, error } = virtualTree.Handler(e, extra)
-
-  if (error) {
-    return Promise.reject(error)
-  }
+    { eventTransaction } = await virtualTree.Handler(e, extra)
 
   return { watcher: virtualTree, eventTransaction: eventTransaction }
 }

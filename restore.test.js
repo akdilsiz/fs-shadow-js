@@ -34,11 +34,10 @@ const generateTransactionsBytes = () => {
       new EventTransaction('s-test-1', Create, uUIDs[1], uUIDs[0]),
       new EventTransaction('ss-test-1', Create, uUIDs[2], uUIDs[1]),
       new EventTransaction('s-test-2', Create, uUIDs[3], uUIDs[0]),
-      new EventTransaction('s-test-2', Remove, uUIDs[3], uUIDs[0]),
       new EventTransaction('s-test-2-rename', Rename, uUIDs[3], uUIDs[0]),
-      new EventTransaction('s-test-2-rename', Move, uUIDs[3], uUIDs[0]),
+      new EventTransaction('s-test-2-moved', Move, uUIDs[3], uUIDs[1]),
+      new EventTransaction('s-test-2-moved', Remove, uUIDs[3], uUIDs[1]),
       new EventTransaction('s-test-3', Create, uUIDs[4], uUIDs[0]),
-      new EventTransaction('s-test-3', Remove, uUIDs[4], uUIDs[0])
     ],
     encodedTxnS = []
 
@@ -88,7 +87,8 @@ describe('Restore Tests', () => {
 
     await RestoreWatcherWithTransactions(txnS, watcher)
     unitJS.assert.equal('test-1', watcher.FileTree.Name)
-    unitJS.assert.equal('s-test-2-rename', watcher.FileTree.SearchByUUID(uUIDs[3]).Name)
+    unitJS.value(watcher.FileTree.SearchByUUID(uUIDs[3])).isNull()
+    unitJS.assert.equal(watcher.FileTree.SearchByUUID(uUIDs[4]).Name, 's-test-3')
   })
 
   it('should be error RestoreWatcherWithTransactions is invalid transactions', async () => {

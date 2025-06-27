@@ -1,14 +1,22 @@
+import { ErrArguments } from './errors.js'
 import FileNode from'./fileNode.js'
 import { Remove, Rename, Create, Move } from './event.js'
 import EventTransaction from './eventTransaction.js'
 import { VirtualTree } from './watcherVirtual.js'
 import { FMap } from './fmap.js'
 
-export const CreateFileNodeWithTransactions = async (transactions = []) => {
+/**
+ * @param {Array<object>} transactions
+ * @return {Promise<{fileNode: FileNode}>}
+ * @constructor
+ */
+export const CreateFileNodeWithTransactions = async (transactions) => {
+  if (!Array.isArray(transactions)) return Promise.reject(new Error(ErrArguments))
+
   const table = new FMap()
 
   let root = new FileNode(),
-    currentNode = null
+    currentNode
 
   for (let i = 0; i < transactions.length; i++) {
     const { eventTransaction, error } = new EventTransaction().Decode(transactions[i])
@@ -35,14 +43,14 @@ export const CreateFileNodeWithTransactions = async (transactions = []) => {
         break
       case Move:
         currentNode = table.getLast(fileNode.UUID)
-        root.RemoveByUUID(currentNode.UUID, currentNode.ParentUUID)
+        await root.RemoveByUUID(currentNode.UUID, currentNode.ParentUUID)
         if (table.has(fileNode.ParentUUID)) {
           currentNode.ParentUUID = fileNode.ParentUUID
           table.getLast(fileNode.ParentUUID).Subs.push(currentNode)
         }
         break
       case Remove:
-        root.RemoveByUUID(fileNode.UUID, fileNode.ParentUUID)
+        await root.RemoveByUUID(fileNode.UUID, fileNode.ParentUUID)
         break
     }
 
@@ -54,9 +62,12 @@ export const CreateFileNodeWithTransactions = async (transactions = []) => {
   return { fileNode: root }
 }
 
+/**
+ * @param {Array<object>} transactions
+ * @param {VirtualTree} tw
+ * @return {Promise<void>}
+ */
 export const RestoreWatcherWithTransactions = async (transactions = [], tw = new VirtualTree()) => {
   const { fileNode } = await CreateFileNodeWithTransactions(transactions)
   tw.Restore(fileNode)
-
-  return null
 }
