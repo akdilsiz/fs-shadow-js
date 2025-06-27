@@ -17,9 +17,8 @@ export class VirtualTree {
   /**
    * params event = new Event(), extra = new ExtraPayload()
    */
-  Handler(event, extra) {
-    let error = null,
-      node = new FileNode(),
+  async Handler(event, extra) {
+    let node = new FileNode(),
       bExtra = null,
       response
 
@@ -29,9 +28,8 @@ export class VirtualTree {
 
     switch (event.Type) {
       case Remove:
-        response = this.Remove(event.FromPath)
+        response = await this.Remove(event.FromPath)
         node = response.fileNode
-        error = response.error
         break
       // case Write:
       //   response = this.Write(event.FromPath)
@@ -39,29 +37,22 @@ export class VirtualTree {
       //   error = response.error
       //   break
       case Create:
-        response = this.Create(event.FromPath, bExtra)
+        response = await this.Create(event.FromPath, bExtra)
         node = response.fileNode
-        error = response.error
         break
       case Rename:
-        response = this.Rename(event.FromPath, event.ToPath)
+        response = await this.Rename(event.FromPath, event.ToPath)
         node = response.fileNode
-        error = response.error
         break
       case Move:
-        response = this.Move(event.FromPath, event.ToPath)
+        response = await this.Move(event.FromPath, event.ToPath)
         node = response.fileNode
-        error = response.error
         break
       default:
-        error = new Error(`unhandled event: ${event.String()}`)
-        break
-    }
-    if (error) {
-      return { eventTransaction: null, error: error }
+        return Promise.reject(new Error(`unhandled event: ${event.String()}`))
     }
 
-    return { eventTransaction: this.MakeEventTransaction(node, event.Type), error: null }
+    return { eventTransaction: this.MakeEventTransaction(node, event.Type) }
   }
   Restore(tree = new FileNode()) {
     this.FileTree = tree
@@ -80,52 +71,37 @@ export class VirtualTree {
     console.log(JSON.stringify(this.FileTree.ToObject(), null, 2))
     console.log(`----------------${label}----------------\n\n`)
   }
-  Create(fromPath = new VirtualPath(), extra = new ExtraPayload()) {
+  async Create(fromPath = new VirtualPath(), extra = new ExtraPayload()) {
     const eventPath = fromPath.ExcludePath(this.ParentPath),
-      { fileNode, error } = this.FileTree.Create(eventPath, fromPath)
-
-    if (error) {
-      return { fileNode: null, error: error }
-    }
+      { fileNode } = await this.FileTree.Create(eventPath, fromPath)
 
     fileNode.UpdateWithExtra(extra)
 
-    return { fileNode: fileNode, error: null }
+    return { fileNode: fileNode }
   }
-  Remove(fromPath = new VirtualPath()) {
-    const { fileNode, error } = this.FileTree.Remove(fromPath.ExcludePath(this.ParentPath))
-    if (error) {
-      return { fileNode: null, error: error }
-    }
+  async Remove(fromPath = new VirtualPath()) {
+    const { fileNode } = await this.FileTree.Remove(fromPath.ExcludePath(this.ParentPath))
 
-    return { fileNode: fileNode, error: null }
+    return { fileNode: fileNode }
   }
-  Rename(fromPath = new VirtualPath(), toPath = new VirtualPath()) {
-    const { fileNode, error } = this.FileTree.Rename(fromPath.ExcludePath(this.ParentPath),
+  async Rename(fromPath = new VirtualPath(), toPath = new VirtualPath()) {
+    const { fileNode } = await this.FileTree.Rename(fromPath.ExcludePath(this.ParentPath),
       toPath.ExcludePath(this.ParentPath))
 
-    if (error) {
-      return { fileNode: null, error: error }
-    }
-
-    return { fileNode: fileNode, error: null }
+    return { fileNode: fileNode }
   }
-  Move(fromPath = new VirtualPath(), toPath = new VirtualPath()) {
-    const { fileNode, error } = this.FileTree.Move(fromPath.ExcludePath(this.ParentPath),
+  async Move(fromPath = new VirtualPath(), toPath = new VirtualPath()) {
+    const { fileNode } = await this.FileTree.Move(fromPath.ExcludePath(this.ParentPath),
       toPath.ExcludePath(this.ParentPath))
 
-    if (error) {
-      return { fileNode: null, error: error }
-    }
-
-    return { fileNode: fileNode, error: null }
+    return { fileNode: fileNode }
   }
-  Write(fromPath = new VirtualPath()) {
-    return { fileNode: null, error: null }
+  async Write(_fromPath = new VirtualPath()) {
+    return Promise.reject(new Error('unhandled event'))
   }
 
   MakeEventTransaction(node = new FileNode(), event = Create) {
-    return  new EventTransaction(node.Name, event, node.UUID, node.ParentUUID, node.Meta)
+    return new EventTransaction(node.Name, event, node.UUID, node.ParentUUID, node.Meta)
   }
 }
 
