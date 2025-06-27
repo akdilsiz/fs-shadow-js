@@ -27,16 +27,11 @@ export default class FileNode {
     this.Meta = meta
   }
 
-  ToJSON() {
-    return JSON.stringify({
-      subs: this.Subs,
-      name: this.Name,
-      uuid: this.UUID,
-      parent_uuid: this.ParentUUID,
-      meta: this.Meta.ToObject()
-    })
-  }
-
+  /**
+   * @param {string} jsonString
+   * @return {{fileNode: FileNode, error: ?Error}}
+   * @constructor
+   */
   FromJSON(jsonString) {
     try {
       const parsed = JSON.parse(jsonString)
@@ -61,20 +56,15 @@ export default class FileNode {
 
       return { fileNode: this, error: null }
     } catch (e) {
-      return { fileNode: null, error: e}
+      return { fileNode: null, error: e }
     }
   }
 
-  ToObject() {
-    return {
-      subs: this.Subs,
-      name: this.Name,
-      uuid: this.UUID,
-      parent_uuid: this.ParentUUID,
-      meta: this.Meta.ToObject()
-    }
-  }
-
+  /**
+   * @param {object} obj
+   * @return {{fileNode: ?FileNode, error: ?Error}}
+   * @constructor
+   */
   FromObject(obj) {
     try {
       if (!(obj instanceof Object)) {
@@ -85,7 +75,7 @@ export default class FileNode {
       for (let i = 0; i < obj.subs.length; i++) {
         const { fileNode, error } = new FileNode().FromObject(obj.subs[i])
         if (error) {
-          return { fileNode: null, error: null }
+          return { fileNode: null, error: error }
         }
         this.Subs.push(fileNode)
       }
@@ -104,68 +94,125 @@ export default class FileNode {
     }
   }
 
-  Move(fromPath = new Path(), toPath = new Path()) {
-    let toNode = this.Search(toPath.String())
+  /**
+   * @return {{subs: *[], name: string, uuid: string, parent_uuid: string, meta: {is_dir: boolean, sum: string, size: number, created_at: number, permission: string, utc_created_at: number}}}
+   * @constructor
+   */
+  ToObject() {
+    return {
+      subs: this.Subs,
+      name: this.Name,
+      uuid: this.UUID,
+      parent_uuid: this.ParentUUID,
+      meta: this.Meta.ToObject()
+    }
+  }
+
+  /**
+   * @return {string}
+   */
+  ToJSON() {
+    return JSON.stringify({
+      subs: this.Subs,
+      name: this.Name,
+      uuid: this.UUID,
+      parent_uuid: this.ParentUUID,
+      meta: this.Meta.ToObject()
+    })
+  }
+
+  /**
+   * @param {Path} fromPath
+   * @param {Path} toPath
+   * @return {Promise<{fileNode: FileNode}>}
+   */
+  async Move(fromPath, toPath) {
+    let toNode = await this.Search(toPath.String())
     if (toNode === null) {
-      return { fileNode: null, error: new Error(ErrToFileNodeNotFound) }
+      return Promise.reject(new Error(ErrToFileNodeNotFound))
     }
 
     for (let i = 0; i < toNode.Subs.length; i++) {
       if (fromPath.String() === toNode.Subs[i].Name) {
-        return { fileNode: null, error: new Error(ErrFileNodeExists) }
+        return Promise.reject(new Error(ErrFileNodeExists))
       }
     }
 
-    const { fileNode, error } = this.Remove(fromPath)
-    if (error) {
-      return { fileNode: null, error: error }
-    }
+    const { fileNode } = await this.Remove(fromPath)
 
     fileNode.ParentUUID = toNode.UUID
     toNode.Subs.push(fileNode)
-    return { fileNode: fileNode, error: null }
+
+    return { fileNode: fileNode }
   }
-  Rename(fromPath = new Path(), toPath = new Path()) {
+
+  /**
+   * @param {Path} fromPath
+   * @param {Path} toPath
+   * @return {Promise<{fileNode: FileNode}>}
+   */
+  async Rename(fromPath = new Path(), toPath = new Path()) {
     const parentNode = this.Search(fromPath.ParentPath().String())
     if (parentNode === null) {
-      return { fileNode: null, error: new Error(ErrFileNodeNotFound) }
+      return Promise.reject(new Error(ErrFileNodeNotFound))
     }
 
     for (let i = 0; i < parentNode.Subs; i++) {
       if (toPath.Name() === parentNode.Subs[i]) {
-        return ErrFileNodeExists
+        return Promise.reject(new Error(ErrFileNodeExists))
       }
     }
 
     const node = this.Search(fromPath.String())
     if (node === null) {
-      return { fileNode: null, error: new Error(ErrFileNodeNotFound) }
+      return Promise.reject(new Error(ErrFileNodeNotFound))
     }
 
     node.Name = toPath.Name()
-    return { fileNode: node, error: null }
+    return { fileNode: node }
   }
+
+  /**
+   * @param {Path} fromPath
+   * @return {Promise<{fileNode: FileNode}>}
+   * @private
+   */
   Remove(fromPath = new Path()) {
     const fileName = fromPath.Name(),
       parentNode = this.Search(fromPath.ParentPath().String())
 
     return this._remove(parentNode, fileName)
   }
+
+  /**
+   * @param {string} uUID
+   * @param {string} parentUUID
+   * @return {Promise<{fileNode: FileNode}>}
+   */
   RemoveByUUID(uUID = '', parentUUID = '') {
     const parentNode = this.SearchByUUID(parentUUID)
     return this._remove(parentNode, uUID, 'uuid')
   }
-  _remove(parentNode = new FileNode(), value = '', searchField = '') {
+
+  /**
+   * @param {FileNode} parentNode
+   * @param {string} value
+   * @param {?string} searchField
+   * @return {Promise<{fileNode: FileNode}>}
+   */
+  async _remove(parentNode = new FileNode(), value = '', searchField = null) {
     if (parentNode === null || parentNode.Name.length === 0) {
-      return { fileNode: null, error: new Error(ErrFileNodeNotFound)}
+      return Promise.reject(new Error(ErrFileNodeNotFound))
     }
+
     if (parentNode.Subs.length === 0) {
-      return { fileNode: null, error: new Error(ErrSubsNodeNotFound) }
+      return Promise.reject(new Error(ErrSubsNodeNotFound))
     }
+
     let lookupValue = '',
       deletedNode = null
     for (let i = 0; i < parentNode.Subs.length; i++) {
-      if (searchField.length > 0 && searchField === 'uuid') {
+      if (!!searchField && searchField === 'uuid') {
         lookupValue = parentNode.Subs[i].UUID
       } else {
         lookupValue = parentNode.Subs[i].Name
@@ -179,11 +226,16 @@ export default class FileNode {
     }
 
     if (deletedNode === null) {
-      return { fileNode: null, error: new Error(ErrFileNodeNotFound)}
+      return Promise.reject(new Error(ErrFileNodeNotFound))
     }
 
-    return { fileNode: deletedNode, error: null }
+    return { fileNode: deletedNode }
   }
+
+  /**
+   * @param {ExtraPayload} extra
+   * @return void
+   */
   UpdateWithExtra(extra = new ExtraPayload()) {
     this.UUID = extra.UUID
     this.Meta.IsDir = extra.IsDir
@@ -192,17 +244,23 @@ export default class FileNode {
     this.Meta.CreatedAt = extra.CreatedAt
     this.Meta.Permission = extra.Permission
   }
-  Create(fromPath = new Path(), absolutePath = new Path()) {
+
+  /**
+   * @param {Path} fromPath
+   * @param {Path} absolutePath
+   * @return {Promise<{fileNode: FileNode}>}
+   */
+  async Create(fromPath = new Path(), absolutePath = new Path()) {
     let sum = ''
 
     const parentNode = this.Search(fromPath.ParentPath().String())
     if (parentNode === null) {
-      return { fileNode: this, error: null }
+      return { fileNode: this }
     }
 
     for (let i = 0; i < parentNode.Subs.length; i++) {
       if (parentNode.Subs[i].Name === fromPath.Name()) {
-        return { fileNode: null, error: fromPath.IsDir() ? new Error(ErrFileExists) : new Error(ErrFileNodeExists) }
+        return Promise.reject(fromPath.IsDir() ? new Error(ErrFileExists) : new Error(ErrFileNodeExists))
       }
     }
 
@@ -218,9 +276,15 @@ export default class FileNode {
         parentNode.UUID,
         meta)
     parentNode.Subs.push(node)
-    return { fileNode: node, error: null }
+
+    return { fileNode: node }
   }
-  Search(path = '') {
+
+  /**
+   * @param {string} path
+   * @return {?FileNode}
+   */
+  Search(path) {
     const pathExp = path.split(Separator)
     if (pathExp.length === 1 && this.Name === pathExp[0]) {
       return this
@@ -242,6 +306,11 @@ export default class FileNode {
 
     return null
   }
+
+  /**
+   * @param {string} uUID
+   * @return {?FileNode}
+   */
   SearchByUUID(uUID = '') {
     if (this.UUID === uUID) {
       return this

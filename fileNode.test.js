@@ -203,7 +203,7 @@ describe('FileNode Tests', () => {
     unitJS.value(fileNode).isNull()
   })
 
-  it('Should be error FileNode .FromObject() is invalid met adata', () => {
+  it('Should be error FileNode .FromObject() is invalid metadata', () => {
     const uUID = v4(),
       parentUUID = v4(),
       subUUID = v4(),
@@ -221,7 +221,7 @@ describe('FileNode Tests', () => {
     unitJS.value(fileNode).isNull()
   })
 
-  it('FileNode', () => {
+  it('FileNode', async () => {
     const parentPath = '/tmp',
       testFolder = `${parentPath}/fs-shadow`,
       rootPath = new VirtualPath(testFolder, true),
@@ -235,17 +235,15 @@ describe('FileNode Tests', () => {
       renameEventFilePath = renameFilePath.ExcludePath(new VirtualPath(parentPath, true)),
       root = new FileNode([], rootPath.Name(), '', '', new MetaData(true))
 
-    const { fileNode: createdFolderNode, error } = root.Create(eventFolderPath, folderPath)
+    const { fileNode: createdFolderNode } = await root.Create(eventFolderPath, folderPath)
 
-    unitJS.value(error).isNull()
     unitJS.assert.equal(1, root.Subs.length)
     const folderNode = root.Subs[0]
     unitJS.assert.equal(folderNode, createdFolderNode)
     unitJS.assert.equal(true, folderNode.Meta.IsDir)
 
     // Create
-    const { fileNode: createdFileNode, error: error2 } = root.Create(eventFilePath, filePath)
-    unitJS.value(error2).isNull()
+    const { fileNode: createdFileNode } = await root.Create(eventFilePath, filePath)
     unitJS.assert.equal(2, root.Subs.length)
     const fileNode = root.Subs[1]
     unitJS.assert.equal(false, fileNode.Meta.IsDir)
@@ -257,14 +255,12 @@ describe('FileNode Tests', () => {
 
     // Rename
     const oldName = fileNode.Name
-    const { fileNode: renamedFileNode, error: error3 } = root.Rename(eventFilePath, renameEventFilePath)
-    unitJS.value(error3).isNull()
+    const { fileNode: renamedFileNode } = await root.Rename(eventFilePath, renameEventFilePath)
     unitJS.assert.notEqual(oldName, fileNode.Name)
     unitJS.assert.equal(renamedFileNode.Name, 'test-2.txt')
 
     // Remove
-    const { fileNode: removedFileNode, error: error4 } = root.Remove(eventFolderPath)
-    unitJS.value(error4).isNull()
+    const { fileNode: removedFileNode } = await root.Remove(eventFolderPath)
     unitJS.assert.equal('test', removedFileNode.Name)
     unitJS.value(root.Search(eventFolderPath.String())).isNull()
   })
@@ -279,13 +275,12 @@ describe('FileNode Tests', () => {
     unitJS.assert.equal(newUUID, fileNode.UUID)
   })
 
-  it('.DeleteByUUID() ', () => {
+  it('.DeleteByUUID() ', async () => {
     const tree = makeDummyTree(),
       treeSubLength = tree.Subs.length,
-      nodeUUID = tree.Subs[0].UUID,
-      { error } = tree.RemoveByUUID(nodeUUID, tree.UUID)
+      nodeUUID = tree.Subs[0].UUID
 
-    unitJS.value(error).isNull()
+    await tree.RemoveByUUID(nodeUUID, tree.UUID)
     unitJS.assert.equal(treeSubLength-1, tree.Subs.length)
   })
 
@@ -297,31 +292,29 @@ describe('FileNode Tests', () => {
     unitJS.assert.equal(tree.Subs[2], node)
   })
 
-  it('.Move()', () => {
+  it('.Move()', async () => {
     const tree = makeDummyTree(),
       fromPath = new VirtualPath('alphabet/d', true),
-      toPath = new VirtualPath('alphabet/a', true),
-      { error } = tree.Move(fromPath, toPath),
-      node = tree.Search('alphabet/a')
+      toPath = new VirtualPath('alphabet/a', true)
 
-    unitJS.value(error).isNull()
+    await tree.Move(fromPath, toPath)
+    const node = tree.Search('alphabet/a')
+
     unitJS.assert.equal(1, node.Subs.length)
   })
 
-  it('.Remove()', () => {
+  it('.Remove()', async () => {
     const tree = makeDummyTree(),
       treeSubLength = tree.Subs.length,
       nodeUUID = tree.Subs[1].UUID,
-      { fileNode, error } = tree.RemoveByUUID(nodeUUID, tree.UUID)
+      { fileNode } = await tree.RemoveByUUID(nodeUUID, tree.UUID)
 
-    unitJS.value(error).isNull()
     unitJS.assert.equal(nodeUUID, fileNode.UUID)
     unitJS.assert.equal(treeSubLength-1, tree.Subs.length)
 
     const nodeName = tree.Subs[1].Name,
-      { fileNode: fileNode2, error: error2 } = tree.Remove(new VirtualPath(`alphabet/${nodeName}`, true))
+      { fileNode: fileNode2 } = await tree.Remove(new VirtualPath(`alphabet/${nodeName}`, true))
 
-    unitJS.value(error2).isNull()
     unitJS.assert.equal(nodeName, fileNode2.Name)
     unitJS.assert.equal(treeSubLength-2, tree.Subs.length)
   })
