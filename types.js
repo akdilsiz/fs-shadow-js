@@ -3,7 +3,9 @@ import { ErrArguments } from './errors.js'
 export const DateTypes = {
     MILLI: 0,
     NANO: 1
-}
+},
+  MILLI = 0,
+  NANO = 0
 
 export class MetaData {
   IsDir = false
@@ -29,10 +31,18 @@ export class MetaData {
     this.Permission = permission
   }
 
+  /**
+   * @param {number} v
+   * @return {void}
+   */
   SetUTCCreatedAt(v) {
     this.UTCCreatedAt = v
   }
 
+  /**
+   * @param {string} jsonString
+   * @return {{metaData: ?MetaData, error: ?Error}}}
+   */
   FromJSON(jsonString) {
     try {
       const parsed = JSON.parse(jsonString)
@@ -57,6 +67,10 @@ export class MetaData {
     }
   }
 
+  /**
+   * @param {object} obj
+   * @return {{metaData: ?MetaData, error: ?Error}}}
+   */
   FromObject(obj) {
     try {
       if (!(obj instanceof Object)) {
@@ -82,6 +96,9 @@ export class MetaData {
     }
   }
 
+  /**
+   * @return {string}
+   */
   ToJSON() {
     return JSON.stringify({
       is_dir: this.IsDir,
@@ -93,6 +110,9 @@ export class MetaData {
     })
   }
 
+  /**
+   * @return {{is_dir: boolean, sum: string, size: number, created_at: number, permission: string, utc_created_at: number}}
+   */
   ToObject() {
     return {
       is_dir: this.IsDir,
@@ -140,6 +160,10 @@ export class ExtraPayload {
     this.UTCCreatedAt = v
   }
 
+  /**
+   * @param {string} jsonString
+   * @return {{extraPayload: ?ExtraPayload, error: ?Error}}
+   */
   FromJSON(jsonString) {
     try {
       const parsed = JSON.parse(jsonString)
@@ -165,6 +189,10 @@ export class ExtraPayload {
     }
   }
 
+  /**
+   * @param {object} obj
+   * @return {{extraPayload: ?ExtraPayload, error: ?Error}}
+   */
   FromObject(obj) {
     try {
       if (obj.Size < 0 || obj.CreatedAt < 0 || (typeof obj.UTCCreatedAt !== 'undefined' && obj.utc_created_at < 0)) {
@@ -188,6 +216,10 @@ export class ExtraPayload {
     }
   }
 
+  /**
+   * @param {Uint8Array} encoded
+   * @return {{extraPayload: ?ExtraPayload, error: ?Error}}
+   */
   FromBinary(encoded) {
     try {
       const decoded = this.decoder.decode(encoded),
@@ -202,10 +234,16 @@ export class ExtraPayload {
     }
   }
 
+  /**
+   * @return {Uint8Array}
+   */
   ToBinary() {
     return this.encoder.encode(this.ToJSON())
   }
 
+  /**
+   * @return {string}
+   */
   ToJSON() {
     return JSON.stringify({
       UUID: this.UUID,
@@ -218,6 +256,9 @@ export class ExtraPayload {
     })
   }
 
+  /**
+   * @return {{UUID: string, IsDir: boolean, Sum: string, Size: number, CreatedAt: number, Permission: string, UTCCreatedAt: number}}
+   */
   ToObject() {
     return {
       UUID: this.UUID,

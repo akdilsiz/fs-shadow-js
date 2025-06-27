@@ -22,6 +22,10 @@ export default class EventTransaction {
     this.ParentUUID = parentUUID
     this.Meta = meta
   }
+
+  /**
+   * @return {{encoded: ?Uint8Array, error: ?Error}}
+   */
   Encode() {
     try {
       if (!(this.Meta instanceof MetaData)) {
@@ -49,6 +53,10 @@ export default class EventTransaction {
     }
   }
 
+  /**
+   * @param {Uint8Array} encoded
+   * @return {{eventTransaction: ?EventTransaction, error: ?Error}}
+   */
   Decode(encoded) {
     try {
       const decoded = decode(encoded)
@@ -69,6 +77,10 @@ export default class EventTransaction {
     }
   }
 
+  /**
+   * @return {FileNode}
+   * @constructor
+   */
   ToFileNode() {
     return new FileNode([], this.Name, this.UUID, this.ParentUUID, this.Meta)
   }

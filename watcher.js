@@ -1,6 +1,13 @@
 import { ExtraPayload } from './types.js'
 import { NewVirtualPathWatcher } from './watcherVirtual.js'
 
-export const NewVirtualWatcher = (rootUUID, fsPath = '', extra = new ExtraPayload()) => {
+/**
+ * @param {string} rootUUID
+ * @param {?string} fsPath
+ * @param {?ExtraPayload} extra
+ * @return {Promise<{watcher: VirtualTree, eventTransaction: EventTransaction}>}
+ * @constructor
+ */
+export const NewVirtualWatcher = (rootUUID, fsPath, extra) => {
   return NewVirtualPathWatcher(rootUUID, fsPath, extra)
 }

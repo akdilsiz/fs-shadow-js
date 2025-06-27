@@ -25,16 +25,29 @@ export default class VirtualPath extends Path {
     return this.p
   }
 
+  /**
+   * @return {string}
+   * @constructor
+   */
   Name() {
     const parts = this.String().split(Separator)
     return parts[parts.length-1]
   }
+
+  /**
+   * @return {VirtualPath}
+   */
   ParentPath() {
     const parts = this.String().split(Separator),
       absolutePath = parts.slice(0, parts.length-1).join(Separator)
 
     return new VirtualPath(absolutePath, true)
   }
+
+  /**
+   * @param p
+   * @return {VirtualPath}
+   */
   ExcludePath(p = new Path()) {
     let eventAbsolutePath = this.String().replaceAll(p.String(), '')
 
