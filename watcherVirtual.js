@@ -20,14 +20,9 @@ export class VirtualTree {
    * @return {Promise<{eventTransaction: EventTransaction}>}
    * @constructor
    */
-  async Handler(event, extra) {
+  async Handler(event, extra = null) {
     let node = new FileNode(),
-      bExtra = null,
       response
-
-    if (extra) {
-      bExtra = extra
-    }
 
     switch (event.Type) {
       case Remove:
@@ -40,7 +35,7 @@ export class VirtualTree {
       //   error = response.error
       //   break
       case Create:
-        response = await this.Create(event.FromPath, bExtra)
+        response = await this.Create(event.FromPath, extra)
         node = response.fileNode
         break
       case Rename:
