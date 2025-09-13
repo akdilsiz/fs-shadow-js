@@ -3,7 +3,8 @@ orbs:
   node: circleci/node@7.1.1
 jobs:
   test:
-    executor: cimg/node:22.18.0 # use the default executor defined within the orb
+    docker:
+      - image: cimg/node:22.18.0
     steps:
       - checkout
       - node/install-packages:
