@@ -149,22 +149,22 @@ export class VirtualTree {
 }
 
 /**
- * @param uUID
- * @param virtualPath
- * @param extra
+ * @param {?string} uUID
+ * @param {?string} virtualPath
+ * @param {?ExtraPayload} extra
  * @return {Promise<{watcher: VirtualTree, eventTransaction: EventTransaction>}
  * @constructor
  */
 export const NewVirtualPathWatcher = async (uUID = '', virtualPath = '', extra = new ExtraPayload()) => {
-  const path = new VirtualPath(virtualPath, true),
-    root = new FileNode([],
-      path.Name(),
-      '',
+  const p = new VirtualPath(virtualPath, true),
+    r = new FileNode([],
+      p.Name(),
+      uUID,
       '',
       new MetaData(true)),
-    virtualTree = new VirtualTree(root, path, path.ParentPath()),
-    e = new Event(Create, path),
-    { eventTransaction } = await virtualTree.Handler(e, extra)
+    vt = new VirtualTree(r, p, p.ParentPath()),
+    e = new Event(Create, p),
+    { eventTransaction } = await vt.Handler(e, extra)
 
-  return { watcher: virtualTree, eventTransaction: eventTransaction }
+  return { watcher: vt, eventTransaction: eventTransaction }
 }

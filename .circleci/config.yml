@@ -1,0 +1,17 @@
+version: 2.1
+orbs:
+  node: circleci/node@22.18.0
+jobs:
+  test:
+    executor: node/default # use the default executor defined within the orb
+    steps:
+      - checkout
+      - node/install-packages:
+          pkg-manager: pnpm
+      - run:
+          command: pnpm test:all
+          name: Run tests
+workflows:
+  test_fs_shadow_js:
+    jobs:
+      - test
