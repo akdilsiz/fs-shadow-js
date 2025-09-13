@@ -1,6 +1,6 @@
 {
   "name": "fs-shadow-js",
-  "version": "2.0.4",
+  "version": "2.0.5",
   "description": "FS-Shadow Javascript",
   "main": "watcher.js",
   "type": "module",
