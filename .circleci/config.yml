@@ -13,19 +13,14 @@ jobs:
       - run:
           command: pnpm test:all
           name: Run tests
+      - run:
+          command: pnpm coverage:all
+          name: Coverage reports
       - coveralls/upload:
           parallel: true
-          flag_name: All tests
           verbose: true
-  done:
-    executor: node/default
-    steps:
-      - coveralls/upload:
-          parallel_finished: true
           carryforward: "All tests"
 workflows:
   test_fs_shadow_js:
     jobs:
       - test
-      - done:
-          requires: [ test ]

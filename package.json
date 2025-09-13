@@ -8,7 +8,7 @@
     "test": "export NODE_ENV=test || SET \"NODE_ENV=test\" && mocha --check-leaks --bail --full-trace --require esm",
     "coverage": "export NODE_ENV=test || SET \"NODE_ENV=test\" && export NODE_OPTIONS='--experimental-loader @istanbuljs/esm-loader-hook --no-warnings' || SET \"NODE_OPTIONS=--experimental-loader @istanbuljs/esm-loader-hook --no-warnings\" && nyc --reporter=text mocha --require esm --experimental-modules",
     "test:all": "export NODE_ENV=test || SET \"NODE_ENV=test\" && mocha --check-leaks --bail --full-trace --require esm --experimental-modules '*.test.js'",
-    "coverage:all": "export NODE_ENV=test || SET \"NODE_ENV=test\" && export NODE_OPTIONS='--experimental-loader @istanbuljs/esm-loader-hook --no-warnings' || SET \"NODE_OPTIONS=--experimental-loader @istanbuljs/esm-loader-hook --no-warnings\" && nyc --reporter=text mocha --require esm '*.test.js'",
+    "coverage:all": "export NODE_ENV=test || SET \"NODE_ENV=test\" && export NODE_OPTIONS='--experimental-loader @istanbuljs/esm-loader-hook --no-warnings' || SET \"NODE_OPTIONS=--experimental-loader @istanbuljs/esm-loader-hook --no-warnings\" && nyc  --reporter=lcov mocha --require esm --report lcovonly -- -R spec '*.test.js'",
     "coveralls": "export NODE_ENV=test || SET \"NODE_ENV=test\" && export NODE_OPTIONS='--experimental-loader @istanbuljs/esm-loader-hook --no-warnings' || SET \"NODE_OPTIONS=--experimental-loader @istanbuljs/esm-loader-hook --no-warnings\" && nyc  --reporter=lcov mocha --require esm --report lcovonly -- -R spec '*.test.js' && cat ./coverage/lcov.info | ./node_modules/coveralls-next/bin/coveralls.js && rm -rf ./coverage"
   },
   "repository": {
