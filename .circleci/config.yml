@@ -1,5 +1,6 @@
 version: 2.1
 orbs:
+  coveralls: coveralls/coveralls@2.2.0
   node: circleci/node@7.1.1
 jobs:
   test:
@@ -12,7 +13,19 @@ jobs:
       - run:
           command: pnpm test:all
           name: Run tests
+      - coveralls/upload:
+          parallel: true
+          flag_name: All tests
+          verbose: true
+  done:
+    executor: node/default
+    steps:
+      - coveralls/upload:
+          parallel_finished: true
+          carryforward: "All tests"
 workflows:
   test_fs_shadow_js:
     jobs:
       - test
+      - done:
+          requires: [ test ]
