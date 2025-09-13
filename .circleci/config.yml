@@ -1,0 +1,26 @@
+version: 2.1
+orbs:
+  coveralls: coveralls/coveralls@2.2.0
+  node: circleci/node@7.1.1
+jobs:
+  test:
+    docker:
+      - image: cimg/node:22.18.0
+    steps:
+      - checkout
+      - node/install-packages:
+          pkg-manager: pnpm
+      - run:
+          command: pnpm test:all
+          name: Run tests
+      - run:
+          command: pnpm coverage:all
+          name: Coverage reports
+      - coveralls/upload:
+          parallel: true
+          verbose: true
+          carryforward: "All tests"
+workflows:
+  test_fs_shadow_js:
+    jobs:
+      - test
