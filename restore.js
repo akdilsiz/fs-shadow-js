@@ -6,11 +6,12 @@ import { VirtualTree } from './watcherVirtual.js'
 import { FMap } from './fmap.js'
 
 /**
- * @param {Array<object>} transactions
+ * @param {Array<Uint8Array>} transactions
+ * @param {boolean} force
  * @return {Promise<{fileNode: FileNode}>}
  * @constructor
  */
-export const CreateFileNodeWithTransactions = async (transactions) => {
+export const CreateFileNodeWithTransactions = async (transactions, force = false) => {
   if (!Array.isArray(transactions)) return Promise.reject(new Error(ErrArguments))
 
   const table = new FMap()
@@ -43,14 +44,22 @@ export const CreateFileNodeWithTransactions = async (transactions) => {
         break
       case Move:
         currentNode = table.getLast(fileNode.UUID)
-        await root.RemoveByUUID(currentNode.UUID, currentNode.ParentUUID)
+        await root.RemoveByUUID(currentNode.UUID, currentNode.ParentUUID).catch((e) => {
+          if (!force) return
+
+          return Promise.reject(e)
+        })
         if (table.has(fileNode.ParentUUID)) {
           currentNode.ParentUUID = fileNode.ParentUUID
           table.getLast(fileNode.ParentUUID).Subs.push(currentNode)
         }
         break
       case Remove:
-        await root.RemoveByUUID(fileNode.UUID, fileNode.ParentUUID)
+        await root.RemoveByUUID(fileNode.UUID, fileNode.ParentUUID).catch((e) => {
+          if (!force) return
+
+          return Promise.reject(e)
+        })
         break
     }
 
@@ -63,11 +72,13 @@ export const CreateFileNodeWithTransactions = async (transactions) => {
 }
 
 /**
- * @param {Array<object>} transactions
+ * @param {Array<Uint8Array>} transactions
  * @param {VirtualTree} tw
+ * @param {boolean} force
  * @return {Promise<void>}
+ * @constructor
  */
-export const RestoreWatcherWithTransactions = async (transactions = [], tw = new VirtualTree()) => {
-  const { fileNode } = await CreateFileNodeWithTransactions(transactions)
+export const RestoreWatcherWithTransactions = async (transactions, tw, force = false) => {
+  const { fileNode } = await CreateFileNodeWithTransactions(transactions, force)
   tw.Restore(fileNode)
 }
