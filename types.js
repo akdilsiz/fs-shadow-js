@@ -9,15 +9,40 @@ export const DateTypes = {
 
 export class MetaData {
   IsDir = false
-  // Sha256 hash sum
-  Sum = ''
-  Size = 0
+  /**
+   * Sum OS File Sha256 hash sum
+   * @optional
+   * @type {string}
+   */
+  Sum
+  /**
+   * @type {number}
+   */
+  Size
   // Unix time
-  CreatedAt = 0
-  // UTC Unix time
-  UTCCreatedAt = 0
-  Permission = ''
+  /**
+   * CreatedAt unix timestamp
+   * @type {number}
+   */
+  CreatedAt
+  /**
+   * UTCCreatedAt utc unix timestamp
+   * @type {number}
+   */
+  UTCCreatedAt
+  /**
+   * Permission OS File
+   * @type {string}
+   */
+  Permission
 
+  /**
+   * @param {boolean} isDir
+   * @param {?string} sum
+   * @param {number} size
+   * @param {number} createdAt
+   * @param {?string} permission
+   */
   constructor(isDir = false, sum = '', size = 0,
               createdAt = 0, permission = '') {
     if (size < 0 || createdAt < 0) {
@@ -47,19 +72,19 @@ export class MetaData {
     try {
       const parsed = JSON.parse(jsonString)
 
-      if (parsed.size < 0 || parsed.created_at < 0 || (typeof parsed.utc_created_at !== 'undefined' && parsed.utc_created_at < 0)) {
+      if ((parsed.Size ?? parsed.size)< 0 || (parsed.CreatedAt ?? parsed.created_at) < 0 || (typeof parsed.UTCCreatedAt !== 'undefined' && parsed.UTCCreatedAt < 0 || typeof parsed.utc_created_at !== 'undefined' && parsed.utc_created_at < 0)) {
         return { metaData: null, error: new Error(ErrArguments) }
       }
 
-      this.IsDir = parsed.is_dir
-      this.Sum = parsed.sum
-      this.Size = parsed.size
-      this.CreatedAt = parsed.created_at
-      if (typeof parsed.utc_created_at !== 'undefined') {
-        this.UTCCreatedAt = parsed.utc_created_at
+      this.IsDir = parsed.IsDir ?? parsed.is_dir
+      this.Sum = parsed.IsDir ?? parsed.sum
+      this.Size = parsed.Size ?? parsed.size
+      this.CreatedAt = parsed.CreatedAt ?? parsed.created_at
+      if (typeof parsed.UTCCreatedAt !== 'undefined' || typeof parsed.utc_created_at !== 'undefined') {
+        this.UTCCreatedAt = parsed.UTCCreatedAt ?? parsed.utc_created_at
       }
 
-      this.Permission = parsed.permission
+      this.Permission = parsed.Permission ?? parsed.permission
 
       return { metaData: this, error: null }
     } catch (e) {
@@ -80,15 +105,15 @@ export class MetaData {
         return { metaData: null, error: new Error(ErrArguments) }
       }
 
-      this.IsDir = obj.is_dir
-      this.Sum = obj.sum
-      this.Size = obj.size
-      this.CreatedAt = obj.created_at
-      if (typeof obj.utc_created_at !== 'undefined') {
-        this.UTCCreatedAt = obj.utc_created_at
+      this.IsDir = obj.IsDir ?? obj.is_dir
+      this.Sum = obj.Sum ?? obj.sum
+      this.Size = obj.Size ?? obj.size
+      this.CreatedAt = obj.CreatedAt ?? obj.created_at
+      if (typeof obj.UTCCreatedAt !== 'undefined' || typeof obj.utc_created_at !== 'undefined') {
+        this.UTCCreatedAt = obj.UTCCreatedAt ?? obj.utc_created_at
       }
 
-      this.Permission = obj.permission
+      this.Permission = obj.Permission ?? obj.permission
 
       return { metaData: this, error: null }
     } catch (e) {
