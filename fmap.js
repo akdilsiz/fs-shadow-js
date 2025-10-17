@@ -5,7 +5,6 @@ export class FMap {
     return this.m.has(key)
   }
 
-
   size(key) {
     if (!this.has(key)) return 0
 
@@ -32,7 +31,7 @@ export class FMap {
 
   setLast(key, value) {
     if (this.m.has(key)) {
-      this.m.set(key, [...this.m.get(key).slice(0, this.size(key)-1), value])
+      this.m.set(key, [...this.m.get(key).slice(0, this.size(key) - 1), value])
     }
   }
 

@@ -1,6 +1,6 @@
 import { Separator, Path, FileInfo } from './path.js'
 
-export default class VirtualPath extends Path {
+export class VirtualPath extends Path {
   p = ''
   isDir = false
   constructor(p = '', isDir = false) {
@@ -31,7 +31,7 @@ export default class VirtualPath extends Path {
    */
   Name() {
     const parts = this.String().split(Separator)
-    return parts[parts.length-1]
+    return parts[parts.length - 1]
   }
 
   /**
@@ -39,7 +39,7 @@ export default class VirtualPath extends Path {
    */
   ParentPath() {
     const parts = this.String().split(Separator),
-      absolutePath = parts.slice(0, parts.length-1).join(Separator)
+      absolutePath = parts.slice(0, parts.length - 1).join(Separator)
 
     return new VirtualPath(absolutePath, true)
   }
@@ -58,3 +58,5 @@ export default class VirtualPath extends Path {
     return new VirtualPath(eventAbsolutePath, this.IsDir())
   }
 }
+
+export default VirtualPath

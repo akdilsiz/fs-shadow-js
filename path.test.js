@@ -34,9 +34,11 @@ describe('FileInfo Tests', () => {
   })
 
   it('Should be throw new Error(ErrArguments) with invalid size ', () => {
-    unitJS.error(() => {
-      new FileInfo(true, -1, 0, 'perm')
-    }).is(new Error(ErrArguments))
+    unitJS
+      .error(() => {
+        new FileInfo(true, -1, 0, 'perm')
+      })
+      .is(new Error(ErrArguments))
   })
 
   it('.ToJSON()', () => {

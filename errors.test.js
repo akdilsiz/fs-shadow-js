@@ -5,7 +5,7 @@ import {
   ErrFileNodeExists,
   ErrFileNodeNotFound,
   ErrSubsNodeNotFound,
-  ErrFileExists
+  ErrFileExists,
 } from './errors.js'
 
 describe('Errors Tests', () => {

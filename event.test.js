@@ -15,11 +15,7 @@ describe('Event Tests', () => {
   it('EventTransaction with valid arguments', () => {
     const from = new VirtualPath('from', false),
       to = new VirtualPath('to', true),
-      event = new Event(
-        Create,
-        from,
-        to
-      )
+      event = new Event(Create, from, to)
 
     unitJS.assert.equal(Create, event.Type)
     unitJS.assert.equal(from, event.FromPath)
@@ -30,23 +26,17 @@ describe('Event Tests', () => {
     const from = new VirtualPath('from', false),
       to = new VirtualPath('to', true)
 
-    unitJS.error(() => {
-      new Event(
-        'invalid',
-        from,
-        to
-      )
-    }).is(new Error(ErrArguments))
+    unitJS
+      .error(() => {
+        new Event('invalid', from, to)
+      })
+      .is(new Error(ErrArguments))
   })
 
   it('EventTransaction String()', () => {
     const from = new VirtualPath('from', false),
       to = new VirtualPath('to', true),
-      event = new Event(
-        Create,
-        from,
-        to
-      )
+      event = new Event(Create, from, to)
 
     unitJS.assert.equal('event from [create]', event.String())
   })
@@ -54,11 +44,7 @@ describe('Event Tests', () => {
   it('EventTransaction Rename type String()', () => {
     const from = new VirtualPath('from', false),
       to = new VirtualPath('to', true),
-      event = new Event(
-        Rename,
-        from,
-        to
-      )
+      event = new Event(Rename, from, to)
 
     unitJS.assert.equal('event from -> to [rename]', event.String())
   })

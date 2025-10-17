@@ -5,7 +5,8 @@ import {
   ErrFileNodeExists,
   ErrFileNodeNotFound,
   ErrSubsNodeNotFound,
-  ErrFileExists, ErrArguments
+  ErrFileExists,
+  ErrArguments,
 } from './errors.js'
 
 export default class FileNode {
@@ -15,11 +16,13 @@ export default class FileNode {
   ParentUUID = ''
   Meta = new MetaData()
 
-  constructor(subs = [],
-              name = '',
-              uUID = '',
-              parentUUID = '',
-              meta = new MetaData()) {
+  constructor(
+    subs = [],
+    name = '',
+    uUID = '',
+    parentUUID = '',
+    meta = new MetaData(),
+  ) {
     this.Subs = subs
     this.Name = name
     this.UUID = uUID
@@ -104,7 +107,7 @@ export default class FileNode {
       name: this.Name,
       uuid: this.UUID,
       parent_uuid: this.ParentUUID,
-      meta: this.Meta.ToObject()
+      meta: this.Meta.ToObject(),
     }
   }
 
@@ -117,7 +120,7 @@ export default class FileNode {
       name: this.Name,
       uuid: this.UUID,
       parent_uuid: this.ParentUUID,
-      meta: this.Meta.ToObject()
+      meta: this.Meta.ToObject(),
     })
   }
 
@@ -219,7 +222,10 @@ export default class FileNode {
 
       if (lookupValue === value) {
         deletedNode = parentNode.Subs[i]
-        parentNode.Subs = [...parentNode.Subs.slice(0, i), ...parentNode.Subs.slice(i+1, parentNode.Subs.length)]
+        parentNode.Subs = [
+          ...parentNode.Subs.slice(0, i),
+          ...parentNode.Subs.slice(i + 1, parentNode.Subs.length),
+        ]
         break
       }
     }
@@ -259,21 +265,23 @@ export default class FileNode {
 
     for (let i = 0; i < parentNode.Subs.length; i++) {
       if (parentNode.Subs[i].Name === fromPath.Name()) {
-        return Promise.reject(fromPath.IsDir() ? new Error(ErrFileExists) : new Error(ErrFileNodeExists))
+        return Promise.reject(
+          fromPath.IsDir()
+            ? new Error(ErrFileExists)
+            : new Error(ErrFileNodeExists),
+        )
       }
     }
 
     const absolutePathInfo = absolutePath.Info(),
-      meta = new MetaData(absolutePath.IsDir(),
+      meta = new MetaData(
+        absolutePath.IsDir(),
         sum,
         absolutePathInfo.Size,
         absolutePathInfo.CreatedAt,
-        absolutePathInfo.Permission),
-      node = new FileNode([],
-        fromPath.Name(),
-        '',
-        parentNode.UUID,
-        meta)
+        absolutePathInfo.Permission,
+      ),
+      node = new FileNode([], fromPath.Name(), '', parentNode.UUID, meta)
     parentNode.Subs.push(node)
 
     return { fileNode: node }
@@ -288,7 +296,9 @@ export default class FileNode {
     if (pathExp.length === 1 && this.Name === pathExp[0]) {
       return this
     }
-    let newPath, node, wantedNode = null
+    let newPath,
+      node,
+      wantedNode = null
     if (pathExp.length !== 1 && this.Name === pathExp[0]) {
       newPath = pathExp.slice(1, pathExp.length).join(Separator)
       for (let i = 0; i < this.Subs.length; i++) {
@@ -317,7 +327,8 @@ export default class FileNode {
     if (!this.Subs.length) {
       return null
     }
-    let node, wantedNode = null
+    let node,
+      wantedNode = null
     for (let i = 0; i < this.Subs.length; i++) {
       node = this.Subs[i].SearchByUUID(uUID)
       if (node !== null) {

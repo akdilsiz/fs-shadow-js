@@ -1,14 +1,18 @@
 import VirtualPath from './virtualPath.js'
 import { ExtraPayload, MetaData } from './types.js'
 import { Remove, Create, Rename, Move, Event } from './event.js'
-import FileNode from'./fileNode.js'
+import FileNode from './fileNode.js'
 import EventTransaction from './eventTransaction.js'
 
 export class VirtualTree {
   FileTree = new FileNode()
   Path = new VirtualPath()
   ParentPath = new VirtualPath()
-  constructor(fileTree = new FileNode(), path = new VirtualPath(), parentPath = new VirtualPath()) {
+  constructor(
+    fileTree = new FileNode(),
+    path = new VirtualPath(),
+    parentPath = new VirtualPath(),
+  ) {
     this.FileTree = fileTree
     this.Path = path
     this.ParentPath = parentPath
@@ -80,9 +84,9 @@ export class VirtualTree {
   }
 
   PrintTree(label = '') {
-    console.log(`----------------${label}----------------`)
-    console.log(JSON.stringify(this.FileTree.ToObject(), null, 2))
-    console.log(`----------------${label}----------------\n\n`)
+    console.log(`----------------${label}----------------`) // eslint-disable-line
+    console.log(JSON.stringify(this.FileTree.ToObject(), null, 2)) // eslint-disable-line
+    console.log(`----------------${label}----------------\n\n`) // eslint-disable-line
   }
 
   /**
@@ -105,7 +109,9 @@ export class VirtualTree {
    * @return {Promise<{fileNode: FileNode}>}
    */
   async Remove(fromPath) {
-    const { fileNode } = await this.FileTree.Remove(fromPath.ExcludePath(this.ParentPath))
+    const { fileNode } = await this.FileTree.Remove(
+      fromPath.ExcludePath(this.ParentPath),
+    )
 
     return { fileNode: fileNode }
   }
@@ -116,8 +122,10 @@ export class VirtualTree {
    * @return {Promise<{fileNode: FileNode}>}
    */
   async Rename(fromPath, toPath) {
-    const { fileNode } = await this.FileTree.Rename(fromPath.ExcludePath(this.ParentPath),
-      toPath.ExcludePath(this.ParentPath))
+    const { fileNode } = await this.FileTree.Rename(
+      fromPath.ExcludePath(this.ParentPath),
+      toPath.ExcludePath(this.ParentPath),
+    )
 
     return { fileNode: fileNode }
   }
@@ -128,8 +136,10 @@ export class VirtualTree {
    * @return {Promise<{fileNode: FileNode}>}
    */
   async Move(fromPath, toPath) {
-    const { fileNode } = await this.FileTree.Move(fromPath.ExcludePath(this.ParentPath),
-      toPath.ExcludePath(this.ParentPath))
+    const { fileNode } = await this.FileTree.Move(
+      fromPath.ExcludePath(this.ParentPath),
+      toPath.ExcludePath(this.ParentPath),
+    )
 
     return { fileNode: fileNode }
   }
@@ -144,7 +154,13 @@ export class VirtualTree {
    * @return {EventTransaction}
    */
   MakeEventTransaction(node = new FileNode(), event = Create) {
-    return new EventTransaction(node.Name, event, node.UUID, node.ParentUUID, node.Meta)
+    return new EventTransaction(
+      node.Name,
+      event,
+      node.UUID,
+      node.ParentUUID,
+      node.Meta,
+    )
   }
 }
 
@@ -155,13 +171,13 @@ export class VirtualTree {
  * @return {Promise<{watcher: VirtualTree, eventTransaction: EventTransaction>}
  * @constructor
  */
-export const NewVirtualPathWatcher = async (uUID = '', virtualPath = '', extra = new ExtraPayload()) => {
+export const NewVirtualPathWatcher = async (
+  uUID = '',
+  virtualPath = '',
+  extra = new ExtraPayload(),
+) => {
   const p = new VirtualPath(virtualPath, true),
-    r = new FileNode([],
-      p.Name(),
-      uUID,
-      '',
-      new MetaData(true)),
+    r = new FileNode([], p.Name(), uUID, '', new MetaData(true)),
     vt = new VirtualTree(r, p, p.ParentPath()),
     e = new Event(Create, p),
     { eventTransaction } = await vt.Handler(e, extra)

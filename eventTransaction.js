@@ -10,8 +10,13 @@ export default class EventTransaction {
   UUID = ''
   ParentUUID = ''
   Meta = new MetaData()
-  constructor(name = '', type = Create, uUID = '',
-              parentUUID = '', meta = new MetaData()) {
+  constructor(
+    name = '',
+    type = Create,
+    uUID = '',
+    parentUUID = '',
+    meta = new MetaData(),
+  ) {
     if (Object.values(ValidEvents).indexOf(type) === -1) {
       throw new Error(ErrArguments)
     }
@@ -43,10 +48,10 @@ export default class EventTransaction {
             Sum: this.Meta.Sum,
             Size: this.Meta.Size,
             CreatedAt: this.Meta.CreatedAt,
-            Permission: this.Meta.Permission
-          }
+            Permission: this.Meta.Permission,
+          },
         }),
-          error: null
+        error: null,
       }
     } catch (e) {
       return { encoded: null, error: e }
@@ -65,11 +70,13 @@ export default class EventTransaction {
       this.Type = decoded.Type
       this.UUID = decoded.UUID
       this.ParentUUID = decoded.ParentUUID
-      this.Meta = new MetaData(decoded.Meta.IsDir,
+      this.Meta = new MetaData(
+        decoded.Meta.IsDir,
         decoded.Meta.Sum,
         decoded.Meta.Size,
         decoded.Meta.CreatedAt,
-        decoded.Meta.Permission)
+        decoded.Meta.Permission,
+      )
 
       return { eventTransaction: this, error: null }
     } catch (e) {

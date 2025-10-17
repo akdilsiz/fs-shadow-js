@@ -11,6 +11,8 @@ describe('VirtualPath Tests', () => {
     unitJS.value(virtualPath.Info()).isInstanceOf(FileInfo)
     unitJS.assert.equal(true, virtualPath.Exists())
     unitJS.value(virtualPath.ParentPath()).is(new VirtualPath('rootPath', true))
-    unitJS.value(virtualPath.ExcludePath(new VirtualPath('rootPath'))).is(new VirtualPath('vPath', true))
+    unitJS
+      .value(virtualPath.ExcludePath(new VirtualPath('rootPath')))
+      .is(new VirtualPath('vPath', true))
   })
 })
