@@ -1,5 +1,6 @@
-import { ErrArguments } from './errors.js'
-import { Path } from './path.js'
+import { Path } from './path.js' // eslint-disable-line
+import VirtualPath from './virtualPath.js' // eslint-disable-line
+
 export const Remove = 'remove',
   Write = 'write',
   Create = 'create',
@@ -10,12 +11,23 @@ export const ValidEvents = [Remove, Write, Create, Rename, Move]
 
 export class Event {
   Type = Create
-  FromPath = new Path()
-  ToPath = new Path()
+  /**
+   * @type {?(Path|VirtualPath)}
+   */
+  FromPath
+  /**
+   * @type {?(Path|VirtualPath)}
+   */
+  ToPath = null
 
-  constructor(type = Create, fromPath = new Path(), toPath = new Path()) {
+  /**
+   * @param {string} type
+   * @param {?(Path|VirtualPath)} fromPath
+   * @param {?(Path|VirtualPath)} toPath
+   */
+  constructor(type, fromPath, toPath = null) {
     if (Object.values(ValidEvents).indexOf(type) === -1) {
-      throw new Error(ErrArguments)
+      throw new Error('Invalid event type')
     }
 
     this.Type = type

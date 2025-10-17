@@ -1,8 +1,8 @@
 import { ErrArguments } from './errors.js'
-import FileNode from'./fileNode.js'
+import FileNode from './fileNode.js'
 import { Remove, Rename, Create, Move } from './event.js'
 import EventTransaction from './eventTransaction.js'
-import { VirtualTree } from './watcherVirtual.js'
+import { VirtualTree } from './watcherVirtual.js' // eslint-disable-line
 import { FMap } from './fmap.js'
 
 /**
@@ -11,8 +11,12 @@ import { FMap } from './fmap.js'
  * @return {Promise<{fileNode: FileNode}>}
  * @constructor
  */
-export const CreateFileNodeWithTransactions = async (transactions, force = false) => {
-  if (!Array.isArray(transactions)) return Promise.reject(new Error(ErrArguments))
+export const CreateFileNodeWithTransactions = async (
+  transactions,
+  force = false,
+) => {
+  if (!Array.isArray(transactions))
+    return Promise.reject(new Error(ErrArguments))
 
   const table = new FMap()
 
@@ -20,7 +24,9 @@ export const CreateFileNodeWithTransactions = async (transactions, force = false
     currentNode
 
   for (let i = 0; i < transactions.length; i++) {
-    const { eventTransaction, error } = new EventTransaction().Decode(transactions[i])
+    const { eventTransaction, error } = new EventTransaction().Decode(
+      transactions[i],
+    )
     if (error) {
       return Promise.reject(error)
     }
@@ -44,22 +50,26 @@ export const CreateFileNodeWithTransactions = async (transactions, force = false
         break
       case Move:
         currentNode = table.getLast(fileNode.UUID)
-        await root.RemoveByUUID(currentNode.UUID, currentNode.ParentUUID).catch((e) => {
-          if (!force) return
+        await root
+          .RemoveByUUID(currentNode.UUID, currentNode.ParentUUID)
+          .catch((e) => {
+            if (!force) return
 
-          return Promise.reject(e)
-        })
+            return Promise.reject(e)
+          })
         if (table.has(fileNode.ParentUUID)) {
           currentNode.ParentUUID = fileNode.ParentUUID
           table.getLast(fileNode.ParentUUID).Subs.push(currentNode)
         }
         break
       case Remove:
-        await root.RemoveByUUID(fileNode.UUID, fileNode.ParentUUID).catch((e) => {
-          if (!force) return
+        await root
+          .RemoveByUUID(fileNode.UUID, fileNode.ParentUUID)
+          .catch((e) => {
+            if (!force) return
 
-          return Promise.reject(e)
-        })
+            return Promise.reject(e)
+          })
         break
     }
 
@@ -78,7 +88,11 @@ export const CreateFileNodeWithTransactions = async (transactions, force = false
  * @return {Promise<void>}
  * @constructor
  */
-export const RestoreWatcherWithTransactions = async (transactions, tw, force = false) => {
+export const RestoreWatcherWithTransactions = async (
+  transactions,
+  tw,
+  force = false,
+) => {
   const { fileNode } = await CreateFileNodeWithTransactions(transactions, force)
   tw.Restore(fileNode)
 }

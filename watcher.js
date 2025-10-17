@@ -1,4 +1,4 @@
-import { ExtraPayload } from './types.js'
+import { ExtraPayload } from './types.js' // eslint-disable-line
 import { NewVirtualPathWatcher } from './watcherVirtual.js'
 
 /**

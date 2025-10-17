@@ -27,7 +27,6 @@ describe('FMap', () => {
     unitJS.assert.equal(fMap.get('k1'), val)
   })
 
-
   it('getLast/1', () => {
     const fMap = new FMap()
 

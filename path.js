@@ -51,7 +51,7 @@ export class FileInfo {
       IsDir: this.IsDir,
       Size: this.Size,
       CreatedAt: this.CreatedAt,
-      Permission: this.Permission
+      Permission: this.Permission,
     })
   }
 
