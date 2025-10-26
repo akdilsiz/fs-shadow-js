@@ -12,6 +12,7 @@ export declare class MetaData {
   UTCCreatedAt: number
   Permission: string
   constructor(
+    uUID: string,
     isDir: boolean,
     sum: string,
     size: number,
