@@ -12,12 +12,11 @@ export declare class MetaData {
   UTCCreatedAt: number
   Permission: string
   constructor(
-    uUID: string,
     isDir: boolean,
-    sum: string,
-    size: number,
-    createdAt: number,
-    permission: string,
+    sum?: string,
+    size?: number,
+    createdAt?: number,
+    permission?: string,
   )
 
   FromJSON(value: string): { metaData?: MetaData; error?: Error }
@@ -42,11 +41,12 @@ export declare class ExtraPayload {
   UTCCreatedAt: number
   Permission: string
   constructor(
+    uUID: string,
     isDir: boolean,
-    sum: string,
-    size: number,
-    createdAt: number,
-    permission: string,
+    sum?: string,
+    size?: number,
+    createdAt?: number,
+    permission?: string,
   )
 
   SetUTCCreatedAt(v: number): ExtraPayload
