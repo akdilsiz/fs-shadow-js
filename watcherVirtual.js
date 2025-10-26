@@ -1,8 +1,8 @@
-import VirtualPath from './virtualPath.js'
+import { VirtualPath } from './virtualPath.js'
 import { ExtraPayload, MetaData } from './types.js'
 import { Remove, Create, Rename, Move, Event } from './event.js'
-import FileNode from './fileNode.js'
-import EventTransaction from './eventTransaction.js'
+import { FileNode } from './fileNode.js'
+import { EventTransaction } from './eventTransaction.js'
 
 export class VirtualTree {
   FileTree = new FileNode()
@@ -168,14 +168,14 @@ export class VirtualTree {
  * @param {?string} uUID
  * @param {?string} virtualPath
  * @param {?ExtraPayload} extra
- * @return {Promise<{watcher: VirtualTree, eventTransaction: EventTransaction>}
+ * @return {Promise<{watcher: VirtualTree, eventTransaction: EventTransaction}>}
  * @constructor
  */
-export const NewVirtualPathWatcher = async (
+export async function NewVirtualPathWatcher(
   uUID = '',
   virtualPath = '',
   extra = new ExtraPayload(),
-) => {
+) {
   const p = new VirtualPath(virtualPath, true),
     r = new FileNode([], p.Name(), uUID, '', new MetaData(true)),
     vt = new VirtualTree(r, p, p.ParentPath()),

@@ -1,7 +1,7 @@
 import unitJS from 'unit.js'
 import { ErrArguments } from './errors.js'
 import { Remove, Write, Create, Rename, Move, Event } from './event.js'
-import VirtualPath from './virtualPath.js'
+import { VirtualPath } from './virtualPath.js'
 
 describe('Event Tests', () => {
   it('EventTypes', () => {

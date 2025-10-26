@@ -1,5 +1,5 @@
 import unitJS from 'unit.js'
-import VirtualPath from './virtualPath.js'
+import { VirtualPath } from './virtualPath.js'
 import { FileInfo } from './path.js'
 
 describe('VirtualPath Tests', () => {

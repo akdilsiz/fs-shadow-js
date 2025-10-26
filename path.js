@@ -44,24 +44,12 @@ export class FileInfo {
   }
 
   /**
-   * @return {string}
-   */
-  ToJSON() {
-    return JSON.stringify({
-      IsDir: this.IsDir,
-      Size: this.Size,
-      CreatedAt: this.CreatedAt,
-      Permission: this.Permission,
-    })
-  }
-
-  /**
-   * @param {string} jsonString
+   * @param {string} value
    * @return {{fileInfo: ?FileInfo, error: ?Error}}
    */
-  FromJSON(jsonString) {
+  FromJSON(value) {
     try {
-      const parsed = JSON.parse(jsonString)
+      const parsed = JSON.parse(value)
       if (parsed.Size < 0 || parsed.CreatedAt < 0) {
         return { fileInfo: null, error: new Error(ErrArguments) }
       }
@@ -74,5 +62,17 @@ export class FileInfo {
     } catch (e) {
       return { fileInfo: null, error: e }
     }
+  }
+
+  /**
+   * @return {string}
+   */
+  ToJSON() {
+    return JSON.stringify({
+      IsDir: this.IsDir,
+      Size: this.Size,
+      CreatedAt: this.CreatedAt,
+      Permission: this.Permission,
+    })
   }
 }

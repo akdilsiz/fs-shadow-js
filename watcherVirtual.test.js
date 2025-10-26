@@ -1,11 +1,11 @@
 import unitJS from 'unit.js'
 import { v4 } from 'uuid'
 import { ErrFileNodeExists, ErrFileNodeNotFound } from './errors.js'
-import VirtualPath from './virtualPath.js'
+import { VirtualPath } from './virtualPath.js'
 import { ExtraPayload, MetaData } from './types.js'
 import { Remove, Write, Create, Rename, Move, Event } from './event.js'
-import EventTransaction from './eventTransaction.js'
-import FileNode from './fileNode.js'
+import { EventTransaction } from './eventTransaction.js'
+import { FileNode } from './fileNode.js'
 import { VirtualTree, NewVirtualPathWatcher } from './watcherVirtual.js'
 
 const makeDummyTree = () => {

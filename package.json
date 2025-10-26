@@ -1,6 +1,6 @@
 {
   "name": "fs-shadow-js",
-  "version": "2.0.8",
+  "version": "2.1.0",
   "description": "FS-Shadow Javascript",
   "main": "watcher.js",
   "type": "module",
@@ -24,6 +24,7 @@
     "file-system"
   ],
   "files": [
+    "**/*.d.ts",
     "errors.js",
     "event.js",
     "eventTransaction.js",
@@ -33,7 +34,6 @@
     "path.js",
     "restore.js",
     "types.js",
-    "util.js",
     "virtualPath.js",
     "watcher.js",
     "watcherVirtual.js"
@@ -44,7 +44,7 @@
     "url": "https://github.com/akdilsiz/fs-shadow-js/issues"
   },
   "homepage": "https://github.com/akdilsiz/fs-shadow-js#readme",
-  "packageManager": "pnpm@10.18.3",
+  "packageManager": "pnpm@10.19.0",
   "devDependencies": {
     "@eslint/js": "^9.38.0",
     "@istanbuljs/esm-loader-hook": "^0.3.0",

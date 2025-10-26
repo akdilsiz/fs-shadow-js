@@ -8,6 +8,6 @@ import { NewVirtualPathWatcher } from './watcherVirtual.js'
  * @return {Promise<{watcher: VirtualTree, eventTransaction: EventTransaction}>}
  * @constructor
  */
-export const NewVirtualWatcher = (rootUUID, fsPath, extra) => {
+export async function NewVirtualWatcher(rootUUID, fsPath, extra) {
   return NewVirtualPathWatcher(rootUUID, fsPath, extra)
 }

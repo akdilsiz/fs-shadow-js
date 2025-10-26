@@ -65,15 +65,15 @@ describe('Types Tests', () => {
       )
 
     metaData.SetUTCCreatedAt(utcCreatedAt.getSeconds())
-    const jsonString = `{"is_dir":true,"sum":"${hexEncode(sha256.create().update(new TextEncoder().encode('sumSHA256')).digest())}","size":123,"created_at":${createdAt.getSeconds()},"permission":"permission","utc_created_at":${utcCreatedAt.getSeconds()}}`
+    const value = `{"is_dir":true,"sum":"${hexEncode(sha256.create().update(new TextEncoder().encode('sumSHA256')).digest())}","size":123,"created_at":${createdAt.getSeconds()},"permission":"permission","utc_created_at":${utcCreatedAt.getSeconds()}}`
 
-    unitJS.assert.equal(jsonString, metaData.ToJSON())
+    unitJS.assert.equal(value, metaData.ToJSON())
   })
 
   it('MetaData .FromJSON()', () => {
     const createdAt = new Date(Date.now()),
-      jsonString = `{"is_dir":true,"sum":"${hexEncode(sha256.create().update(new TextEncoder().encode('sumSHA256-2')).digest())}","size":12345,"created_at":${createdAt.getSeconds()},"permission":"permission2"}`,
-      { metaData, error } = new MetaData().FromJSON(jsonString)
+      value = `{"is_dir":true,"sum":"${hexEncode(sha256.create().update(new TextEncoder().encode('sumSHA256-2')).digest())}","size":12345,"created_at":${createdAt.getSeconds()},"permission":"permission2"}`,
+      { metaData, error } = new MetaData().FromJSON(value)
 
     unitJS.value(error).isNull()
     unitJS.assert.equal(true, metaData.IsDir)
@@ -93,8 +93,8 @@ describe('Types Tests', () => {
 
   it('Should be SyntaxError MetaData .FromJSON()', () => {
     const createdAt = new Date(Date.now()),
-      jsonString = `{"is_dir":true"size":12345,"created_at":${createdAt.getSeconds()},"permission":"permission2"}`,
-      { metaData, error } = new MetaData().FromJSON(jsonString)
+      value = `{"is_dir":true"size":12345,"created_at":${createdAt.getSeconds()},"permission":"permission2"}`,
+      { metaData, error } = new MetaData().FromJSON(value)
 
     unitJS.value(metaData).isNull()
     unitJS.bool(error instanceof SyntaxError).isTrue()
@@ -102,16 +102,16 @@ describe('Types Tests', () => {
 
   it('Should be ErrArguments MetaData .FromJSON() if size is negative', () => {
     const createdAt = new Date(Date.now()),
-      jsonString = `{"is_dir":true,"sum":"${hexEncode(sha256.create().update(new TextEncoder().encode('sumSHA256-2')).digest())}","size":-1,"created_at":${createdAt.getSeconds()},"permission":"permission2"}`,
-      { metaData, error } = new MetaData().FromJSON(jsonString)
+      value = `{"is_dir":true,"sum":"${hexEncode(sha256.create().update(new TextEncoder().encode('sumSHA256-2')).digest())}","size":-1,"created_at":${createdAt.getSeconds()},"permission":"permission2"}`,
+      { metaData, error } = new MetaData().FromJSON(value)
 
     unitJS.value(metaData).isNull()
     unitJS.assert.equal(ErrArguments, error.message)
   })
 
   it('Should be ErrArguments MetaData .FromJSON() if created_at is negative', () => {
-    const jsonString = `{"is_dir":true,"sum":"${hexEncode(sha256.create().update(new TextEncoder().encode('sumSHA256-2')).digest())}","size":123,"created_at":-1,"permission":"permission2"}`,
-      { metaData, error } = new MetaData().FromJSON(jsonString)
+    const value = `{"is_dir":true,"sum":"${hexEncode(sha256.create().update(new TextEncoder().encode('sumSHA256-2')).digest())}","size":123,"created_at":-1,"permission":"permission2"}`,
+      { metaData, error } = new MetaData().FromJSON(value)
 
     unitJS.value(metaData).isNull()
     unitJS.assert.equal(ErrArguments, error.message)
@@ -216,16 +216,16 @@ describe('Types Tests', () => {
       )
 
     extraPayload.SetUTCCreatedAt(utcCreatedAt.getSeconds())
-    const jsonString = `{"UUID":"${uid}","IsDir":true,"Sum":"${hexEncode(sha256.create().update(new TextEncoder().encode('sumSHA256')).digest())}","Size":123,"CreatedAt":${createdAt.getSeconds()},"Permission":"permission","UTCCreatedAt":${utcCreatedAt.getSeconds()}}`
+    const value = `{"UUID":"${uid}","IsDir":true,"Sum":"${hexEncode(sha256.create().update(new TextEncoder().encode('sumSHA256')).digest())}","Size":123,"CreatedAt":${createdAt.getSeconds()},"Permission":"permission","UTCCreatedAt":${utcCreatedAt.getSeconds()}}`
 
-    unitJS.assert.equal(jsonString, extraPayload.ToJSON())
+    unitJS.assert.equal(value, extraPayload.ToJSON())
   })
 
   it('ExtraPayload .FromJSON()', () => {
     const uid = v4(),
       createdAt = new Date(Date.now()),
-      jsonString = `{"UUID":"${uid}","IsDir":true,"Sum":"${hexEncode(sha256.create().update(new TextEncoder().encode('sumSHA256-2')).digest())}","Size":12345,"CreatedAt":${createdAt.getSeconds()},"Permission":"permission2"}`,
-      { extraPayload, error } = new ExtraPayload().FromJSON(jsonString)
+      value = `{"UUID":"${uid}","IsDir":true,"Sum":"${hexEncode(sha256.create().update(new TextEncoder().encode('sumSHA256-2')).digest())}","Size":12345,"CreatedAt":${createdAt.getSeconds()},"Permission":"permission2"}`,
+      { extraPayload, error } = new ExtraPayload().FromJSON(value)
 
     unitJS.value(error).isNull()
     unitJS.assert.equal(uid, extraPayload.UUID)
@@ -245,8 +245,8 @@ describe('Types Tests', () => {
   })
 
   it('Should be SyntaxError ExtraPayload .FromJSON()', () => {
-    const jsonString = `"invalid`,
-      { extraPayload, error } = new ExtraPayload().FromJSON(jsonString)
+    const value = `"invalid`,
+      { extraPayload, error } = new ExtraPayload().FromJSON(value)
 
     unitJS.value(extraPayload).isNull()
     unitJS.bool(error instanceof SyntaxError).isTrue()
@@ -255,8 +255,8 @@ describe('Types Tests', () => {
   it('Should be ErrArguments ExtraPayload .FromJSON() if size is negative', () => {
     const uid = v4(),
       createdAt = new Date(Date.now()),
-      jsonString = `{"UUID":"${uid}","IsDir":true,"Sum":"${hexEncode(sha256.create().update(new TextEncoder().encode('sumSHA256')).digest())}","Size":-1,"CreatedAt":${createdAt.getSeconds()},"Permission":"permission2"}`,
-      { extraPayload, error } = new ExtraPayload().FromJSON(jsonString)
+      value = `{"UUID":"${uid}","IsDir":true,"Sum":"${hexEncode(sha256.create().update(new TextEncoder().encode('sumSHA256')).digest())}","Size":-1,"CreatedAt":${createdAt.getSeconds()},"Permission":"permission2"}`,
+      { extraPayload, error } = new ExtraPayload().FromJSON(value)
 
     unitJS.value(extraPayload).isNull()
     unitJS.assert.equal(ErrArguments, error.message)
@@ -264,8 +264,8 @@ describe('Types Tests', () => {
 
   it('Should be ErrArguments ExtraPayload .FromJSON() if created_at is negative', () => {
     const uid = v4(),
-      jsonString = `{"UUID":"${uid}","IsDir":true,"Sum":"${hexEncode(sha256.create().update(new TextEncoder().encode('sumSHA256')).digest())}","Size":123,"CreatedAt":-1,"Permission":"permission"}`,
-      { extraPayload, error } = new ExtraPayload().FromJSON(jsonString)
+      value = `{"UUID":"${uid}","IsDir":true,"Sum":"${hexEncode(sha256.create().update(new TextEncoder().encode('sumSHA256')).digest())}","Size":123,"CreatedAt":-1,"Permission":"permission"}`,
+      { extraPayload, error } = new ExtraPayload().FromJSON(value)
 
     unitJS.value(extraPayload).isNull()
     unitJS.assert.equal(ErrArguments, error.message)
