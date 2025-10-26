@@ -58,5 +58,3 @@ export class VirtualPath extends Path {
     return new VirtualPath(eventAbsolutePath, this.IsDir())
   }
 }
-
-export default VirtualPath

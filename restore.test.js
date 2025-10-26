@@ -2,7 +2,7 @@ import unitJS from 'unit.js'
 import { v4 } from 'uuid'
 import { ExtraPayload } from './types.js'
 import { Remove, Create, Rename, Move } from './event.js'
-import EventTransaction from './eventTransaction.js'
+import { EventTransaction } from './eventTransaction.js'
 import { NewVirtualPathWatcher } from './watcherVirtual.js'
 import {
   CreateFileNodeWithTransactions,

@@ -9,7 +9,7 @@ import {
   ErrArguments,
 } from './errors.js'
 
-export default class FileNode {
+export class FileNode {
   Subs = []
   Name = ''
   UUID = ''
@@ -31,13 +31,13 @@ export default class FileNode {
   }
 
   /**
-   * @param {string} jsonString
+   * @param {string} value
    * @return {{fileNode: FileNode, error: ?Error}}
    * @constructor
    */
-  FromJSON(jsonString) {
+  FromJSON(value) {
     try {
-      const parsed = JSON.parse(jsonString)
+      const parsed = JSON.parse(value)
 
       this.Subs = []
       for (let i = 0; i < parsed.subs.length; i++) {
@@ -197,49 +197,8 @@ export default class FileNode {
   }
 
   /**
-   * @param {FileNode} parentNode
-   * @param {string} value
-   * @param {?string} searchField
-   * @return {Promise<{fileNode: FileNode}>}
-   */
-  async _remove(parentNode = new FileNode(), value = '', searchField = null) {
-    if (parentNode === null || parentNode.Name.length === 0) {
-      return Promise.reject(new Error(ErrFileNodeNotFound))
-    }
-
-    if (parentNode.Subs.length === 0) {
-      return Promise.reject(new Error(ErrSubsNodeNotFound))
-    }
-
-    let lookupValue = '',
-      deletedNode = null
-    for (let i = 0; i < parentNode.Subs.length; i++) {
-      if (!!searchField && searchField === 'uuid') {
-        lookupValue = parentNode.Subs[i].UUID
-      } else {
-        lookupValue = parentNode.Subs[i].Name
-      }
-
-      if (lookupValue === value) {
-        deletedNode = parentNode.Subs[i]
-        parentNode.Subs = [
-          ...parentNode.Subs.slice(0, i),
-          ...parentNode.Subs.slice(i + 1, parentNode.Subs.length),
-        ]
-        break
-      }
-    }
-
-    if (deletedNode === null) {
-      return Promise.reject(new Error(ErrFileNodeNotFound))
-    }
-
-    return { fileNode: deletedNode }
-  }
-
-  /**
    * @param {ExtraPayload} extra
-   * @return {void}
+   * @return {FileNode}
    */
   UpdateWithExtra(extra = new ExtraPayload()) {
     this.UUID = extra.UUID
@@ -248,6 +207,8 @@ export default class FileNode {
     this.Meta.Sum = extra.Sum
     this.Meta.CreatedAt = extra.CreatedAt
     this.Meta.Permission = extra.Permission
+
+    return this
   }
 
   /**
@@ -340,5 +301,46 @@ export default class FileNode {
       return wantedNode
     }
     return null
+  }
+
+  /**
+   * @param {FileNode} parentNode
+   * @param {string} value
+   * @param {?string} searchField
+   * @return {Promise<{fileNode: FileNode}>}
+   */
+  async _remove(parentNode = new FileNode(), value = '', searchField = null) {
+    if (parentNode === null || parentNode.Name.length === 0) {
+      return Promise.reject(new Error(ErrFileNodeNotFound))
+    }
+
+    if (parentNode.Subs.length === 0) {
+      return Promise.reject(new Error(ErrSubsNodeNotFound))
+    }
+
+    let lookupValue = '',
+      deletedNode = null
+    for (let i = 0; i < parentNode.Subs.length; i++) {
+      if (!!searchField && searchField === 'uuid') {
+        lookupValue = parentNode.Subs[i].UUID
+      } else {
+        lookupValue = parentNode.Subs[i].Name
+      }
+
+      if (lookupValue === value) {
+        deletedNode = parentNode.Subs[i]
+        parentNode.Subs = [
+          ...parentNode.Subs.slice(0, i),
+          ...parentNode.Subs.slice(i + 1, parentNode.Subs.length),
+        ]
+        break
+      }
+    }
+
+    if (deletedNode === null) {
+      return Promise.reject(new Error(ErrFileNodeNotFound))
+    }
+
+    return { fileNode: deletedNode }
   }
 }

@@ -24,6 +24,7 @@
     "file-system"
   ],
   "files": [
+    "**/*.d.ts",
     "errors.js",
     "event.js",
     "eventTransaction.js",
@@ -33,7 +34,6 @@
     "path.js",
     "restore.js",
     "types.js",
-    "util.js",
     "virtualPath.js",
     "watcher.js",
     "watcherVirtual.js"

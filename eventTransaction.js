@@ -2,9 +2,9 @@ import { encode, decode } from '@msgpack/msgpack'
 import { ErrArguments } from './errors.js'
 import { Create, ValidEvents } from './event.js'
 import { MetaData } from './types.js'
-import FileNode from './fileNode.js'
+import { FileNode } from './fileNode.js'
 
-export default class EventTransaction {
+export class EventTransaction {
   Name = ''
   Type = Create
   UUID = ''
@@ -17,7 +17,7 @@ export default class EventTransaction {
     parentUUID = '',
     meta = new MetaData(),
   ) {
-    if (Object.values(ValidEvents).indexOf(type) === -1) {
+    if (!ValidEvents.includes(type)) {
       throw new Error(ErrArguments)
     }
 

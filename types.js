@@ -1,5 +1,8 @@
 import { ErrArguments } from './errors.js'
 
+const encoder = new TextEncoder(),
+  decoder = new TextDecoder()
+
 export const DateTypes = {
     MILLI: 0,
     NANO: 1,
@@ -63,19 +66,20 @@ export class MetaData {
 
   /**
    * @param {number} v
-   * @return {void}
+   * @return {MetaData}
    */
   SetUTCCreatedAt(v) {
     this.UTCCreatedAt = v
+    return this
   }
 
   /**
-   * @param {string} jsonString
+   * @param {string} value
    * @return {{metaData: ?MetaData, error: ?Error}}}
    */
-  FromJSON(jsonString) {
+  FromJSON(value) {
     try {
-      const parsed = JSON.parse(jsonString)
+      const parsed = JSON.parse(value)
 
       if (
         (parsed.Size ?? parsed.size) < 0 ||
@@ -181,8 +185,6 @@ export class ExtraPayload {
   CreatedAt = 0
   UTCCreatedAt = 0
   Permission = ''
-  encoder = new TextEncoder()
-  decoder = new TextDecoder()
 
   constructor(
     uUID = '',
@@ -207,15 +209,16 @@ export class ExtraPayload {
 
   SetUTCCreatedAt(v) {
     this.UTCCreatedAt = v
+    return this
   }
 
   /**
-   * @param {string} jsonString
+   * @param {string} value
    * @return {{extraPayload: ?ExtraPayload, error: ?Error}}
    */
-  FromJSON(jsonString) {
+  FromJSON(value) {
     try {
-      const parsed = JSON.parse(jsonString)
+      const parsed = JSON.parse(value)
 
       if (
         parsed.Size < 0 ||
@@ -280,7 +283,7 @@ export class ExtraPayload {
    */
   FromBinary(encoded) {
     try {
-      const decoded = this.decoder.decode(encoded),
+      const decoded = decoder.decode(encoded),
         { error } = this.FromJSON(decoded)
       if (error) {
         return { extraPayload: null, error: error }
@@ -296,7 +299,7 @@ export class ExtraPayload {
    * @return {Uint8Array}
    */
   ToBinary() {
-    return this.encoder.encode(this.ToJSON())
+    return encoder.encode(this.ToJSON())
   }
 
   /**

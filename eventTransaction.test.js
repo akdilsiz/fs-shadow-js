@@ -3,9 +3,9 @@ import { v4 } from 'uuid'
 import { encode } from '@msgpack/msgpack'
 import { ErrArguments } from './errors.js'
 import { MetaData } from './types.js'
-import EventTransaction from './eventTransaction.js'
+import { EventTransaction } from './eventTransaction.js'
 import { Create } from './event.js'
-import FileNode from './fileNode.js'
+import { FileNode } from './fileNode.js'
 
 describe('EventTransaction Tests', () => {
   it('EventTransaction with valid arguments', () => {

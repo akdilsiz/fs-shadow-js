@@ -1,7 +1,7 @@
 import { ErrArguments } from './errors.js'
-import FileNode from './fileNode.js'
+import { FileNode } from './fileNode.js'
 import { Remove, Rename, Create, Move } from './event.js'
-import EventTransaction from './eventTransaction.js'
+import { EventTransaction } from './eventTransaction.js'
 import { VirtualTree } from './watcherVirtual.js' // eslint-disable-line
 import { FMap } from './fmap.js'
 

@@ -2,8 +2,8 @@ import unitJS from 'unit.js'
 import { v4 } from 'uuid'
 import { ErrArguments } from './errors.js'
 import { MetaData, ExtraPayload } from './types.js'
-import FileNode from './fileNode.js'
-import VirtualPath from './virtualPath.js'
+import { FileNode } from './fileNode.js'
+import { VirtualPath } from './virtualPath.js'
 
 const makeDummyTree = () => {
   const rootUUID = v4()

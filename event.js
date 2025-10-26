@@ -1,5 +1,5 @@
 import { Path } from './path.js' // eslint-disable-line
-import VirtualPath from './virtualPath.js' // eslint-disable-line
+import { VirtualPath } from './virtualPath.js' // eslint-disable-line
 
 export const Remove = 'remove',
   Write = 'write',
