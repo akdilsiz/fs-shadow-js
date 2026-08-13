@@ -6,9 +6,9 @@ export declare const Remove: EventType,
   Write: EventType,
   Create: EventType,
   Rename: EventType,
-  Move: EventType;
+  Move: EventType
 
-export declare const ValidEvents: EventType[];
+export declare const ValidEvents: EventType[]
 
 export declare class Event {
   Type: EventType

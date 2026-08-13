@@ -13,10 +13,10 @@ const makeDummyTree = () => {
       new FileNode([], 'a', v4(), rootUUID),
       new FileNode([], 'b', v4(), rootUUID),
       new FileNode([], 'c', v4(), rootUUID),
-      new FileNode([], 'd', v4(), rootUUID),
+      new FileNode([], 'd', v4(), rootUUID)
     ],
     'alphabet',
-    rootUUID,
+    rootUUID
   )
 }
 
@@ -51,15 +51,15 @@ describe('FileNode Tests', () => {
           size: 1,
           created_at: 1,
           permission: 'permission',
-          utc_created_at: 1,
-        },
+          utc_created_at: 1
+        }
       }),
       fileNodeJson = new FileNode(
         subs,
         'node1',
         uUID,
         parentUUID,
-        metaData,
+        metaData
       ).ToJSON()
 
     unitJS.assert.equal(valueJson, fileNodeJson)
@@ -80,8 +80,8 @@ describe('FileNode Tests', () => {
           size: 1,
           created_at: 2,
           permission: 'permission',
-          utc_created_at: 2,
-        },
+          utc_created_at: 2
+        }
       }),
       { fileNode, error } = new FileNode().FromJSON(valueJson)
 
@@ -113,8 +113,8 @@ describe('FileNode Tests', () => {
           size: 1,
           created_at: 2,
           permission: 'permission',
-          utc_created_at: 2,
-        },
+          utc_created_at: 2
+        }
       }),
       { fileNode, error } = new FileNode().FromJSON(valueJson)
 
@@ -149,7 +149,7 @@ describe('FileNode Tests', () => {
         'node1',
         uUID,
         parentUUID,
-        metaData,
+        metaData
       ).ToObject()
 
     unitJS.value(fileNode.subs).is([])
@@ -174,8 +174,8 @@ describe('FileNode Tests', () => {
           sum: 'sum',
           size: 1,
           created_at: 2,
-          permission: 'permission',
-        },
+          permission: 'permission'
+        }
       },
       { fileNode, error } = new FileNode().FromObject(value)
 
@@ -224,7 +224,7 @@ describe('FileNode Tests', () => {
         name: 'node1',
         uuid: uUID,
         parent_uuid: parentUUID,
-        meta: '',
+        meta: ''
       },
       { fileNode, error } = new FileNode().FromObject(value)
 
@@ -239,20 +239,20 @@ describe('FileNode Tests', () => {
       folder = `${testFolder}/test`,
       folderPath = new VirtualPath(folder, true),
       eventFolderPath = folderPath.ExcludePath(
-        new VirtualPath(parentPath, true),
+        new VirtualPath(parentPath, true)
       ),
       emptyFile = `${testFolder}/test.txt`,
       filePath = new VirtualPath(emptyFile, false),
       eventFilePath = filePath.ExcludePath(new VirtualPath(parentPath, true)),
       renameFilePath = new VirtualPath(`${testFolder}/test-2.txt`, false),
       renameEventFilePath = renameFilePath.ExcludePath(
-        new VirtualPath(parentPath, true),
+        new VirtualPath(parentPath, true)
       ),
       root = new FileNode([], rootPath.Name(), '', '', new MetaData(true))
 
     const { fileNode: createdFolderNode } = await root.Create(
       eventFolderPath,
-      folderPath,
+      folderPath
     )
 
     unitJS.assert.equal(1, root.Subs.length)
@@ -263,7 +263,7 @@ describe('FileNode Tests', () => {
     // Create
     const { fileNode: createdFileNode } = await root.Create(
       eventFilePath,
-      filePath,
+      filePath
     )
     unitJS.assert.equal(2, root.Subs.length)
     const fileNode = root.Subs[1]
@@ -278,7 +278,7 @@ describe('FileNode Tests', () => {
     const oldName = fileNode.Name
     const { fileNode: renamedFileNode } = await root.Rename(
       eventFilePath,
-      renameEventFilePath,
+      renameEventFilePath
     )
     unitJS.assert.notEqual(oldName, fileNode.Name)
     unitJS.assert.equal(renamedFileNode.Name, 'test-2.txt')
@@ -338,7 +338,7 @@ describe('FileNode Tests', () => {
 
     const nodeName = tree.Subs[1].Name,
       { fileNode: fileNode2 } = await tree.Remove(
-        new VirtualPath(`alphabet/${nodeName}`, true),
+        new VirtualPath(`alphabet/${nodeName}`, true)
       )
 
     unitJS.assert.equal(nodeName, fileNode2.Name)

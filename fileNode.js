@@ -6,7 +6,7 @@ import {
   ErrFileNodeNotFound,
   ErrSubsNodeNotFound,
   ErrFileExists,
-  ErrArguments,
+  ErrArguments
 } from './errors.js'
 
 export class FileNode {
@@ -21,7 +21,7 @@ export class FileNode {
     name = '',
     uUID = '',
     parentUUID = '',
-    meta = new MetaData(),
+    meta = new MetaData()
   ) {
     this.Subs = subs
     this.Name = name
@@ -107,7 +107,7 @@ export class FileNode {
       name: this.Name,
       uuid: this.UUID,
       parent_uuid: this.ParentUUID,
-      meta: this.Meta.ToObject(),
+      meta: this.Meta.ToObject()
     }
   }
 
@@ -120,7 +120,7 @@ export class FileNode {
       name: this.Name,
       uuid: this.UUID,
       parent_uuid: this.ParentUUID,
-      meta: this.Meta.ToObject(),
+      meta: this.Meta.ToObject()
     })
   }
 
@@ -229,7 +229,7 @@ export class FileNode {
         return Promise.reject(
           fromPath.IsDir()
             ? new Error(ErrFileExists)
-            : new Error(ErrFileNodeExists),
+            : new Error(ErrFileNodeExists)
         )
       }
     }
@@ -240,7 +240,7 @@ export class FileNode {
         sum,
         absolutePathInfo.Size,
         absolutePathInfo.CreatedAt,
-        absolutePathInfo.Permission,
+        absolutePathInfo.Permission
       ),
       node = new FileNode([], fromPath.Name(), '', parentNode.UUID, meta)
     parentNode.Subs.push(node)
@@ -331,7 +331,7 @@ export class FileNode {
         deletedNode = parentNode.Subs[i]
         parentNode.Subs = [
           ...parentNode.Subs.slice(0, i),
-          ...parentNode.Subs.slice(i + 1, parentNode.Subs.length),
+          ...parentNode.Subs.slice(i + 1, parentNode.Subs.length)
         ]
         break
       }

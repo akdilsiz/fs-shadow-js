@@ -13,7 +13,7 @@ import { FMap } from './fmap.js'
  */
 export const CreateFileNodeWithTransactions = async (
   transactions,
-  force = false,
+  force = false
 ) => {
   if (!Array.isArray(transactions))
     return Promise.reject(new Error(ErrArguments))
@@ -25,7 +25,7 @@ export const CreateFileNodeWithTransactions = async (
 
   for (let i = 0; i < transactions.length; i++) {
     const { eventTransaction, error } = new EventTransaction().Decode(
-      transactions[i],
+      transactions[i]
     )
     if (error) {
       return Promise.reject(error)
@@ -52,7 +52,7 @@ export const CreateFileNodeWithTransactions = async (
         currentNode = table.getLast(fileNode.UUID)
         await root
           .RemoveByUUID(currentNode.UUID, currentNode.ParentUUID)
-          .catch((e) => {
+          .catch(e => {
             if (!force) return
 
             return Promise.reject(e)
@@ -63,13 +63,11 @@ export const CreateFileNodeWithTransactions = async (
         }
         break
       case Remove:
-        await root
-          .RemoveByUUID(fileNode.UUID, fileNode.ParentUUID)
-          .catch((e) => {
-            if (!force) return
+        await root.RemoveByUUID(fileNode.UUID, fileNode.ParentUUID).catch(e => {
+          if (!force) return
 
-            return Promise.reject(e)
-          })
+          return Promise.reject(e)
+        })
         break
     }
 
@@ -91,7 +89,7 @@ export const CreateFileNodeWithTransactions = async (
 export const RestoreWatcherWithTransactions = async (
   transactions,
   tw,
-  force = false,
+  force = false
 ) => {
   const { fileNode } = await CreateFileNodeWithTransactions(transactions, force)
   tw.Restore(fileNode)

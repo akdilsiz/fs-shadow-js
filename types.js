@@ -5,7 +5,7 @@ const encoder = new TextEncoder(),
 
 export const DateTypes = {
     MILLI: 0,
-    NANO: 1,
+    NANO: 1
   },
   MILLI = 0,
   NANO = 0
@@ -51,7 +51,7 @@ export class MetaData {
     sum = '',
     size = 0,
     createdAt = 0,
-    permission = '',
+    permission = ''
   ) {
     if (size < 0 || createdAt < 0) {
       throw new Error(ErrArguments)
@@ -157,7 +157,7 @@ export class MetaData {
       size: this.Size,
       created_at: this.CreatedAt,
       permission: this.Permission,
-      utc_created_at: this.UTCCreatedAt,
+      utc_created_at: this.UTCCreatedAt
     })
   }
 
@@ -171,7 +171,7 @@ export class MetaData {
       size: this.Size,
       created_at: this.CreatedAt,
       permission: this.Permission,
-      utc_created_at: this.UTCCreatedAt,
+      utc_created_at: this.UTCCreatedAt
     }
   }
 }
@@ -192,7 +192,7 @@ export class ExtraPayload {
     sum = '',
     size = 0,
     createdAt = 0,
-    permission = '',
+    permission = ''
   ) {
     if (size < 0 || createdAt < 0) {
       throw new Error(ErrArguments)
@@ -313,7 +313,7 @@ export class ExtraPayload {
       Size: this.Size,
       CreatedAt: this.CreatedAt,
       Permission: this.Permission,
-      UTCCreatedAt: this.UTCCreatedAt,
+      UTCCreatedAt: this.UTCCreatedAt
     })
   }
 
@@ -328,7 +328,7 @@ export class ExtraPayload {
       Size: this.Size,
       CreatedAt: this.CreatedAt,
       Permission: this.Permission,
-      UTCCreatedAt: this.UTCCreatedAt,
+      UTCCreatedAt: this.UTCCreatedAt
     }
   }
 }

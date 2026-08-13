@@ -15,7 +15,7 @@ export class EventTransaction {
     type = Create,
     uUID = '',
     parentUUID = '',
-    meta = new MetaData(),
+    meta = new MetaData()
   ) {
     if (!ValidEvents.includes(type)) {
       throw new Error(ErrArguments)
@@ -48,10 +48,10 @@ export class EventTransaction {
             Sum: this.Meta.Sum,
             Size: this.Meta.Size,
             CreatedAt: this.Meta.CreatedAt,
-            Permission: this.Meta.Permission,
-          },
+            Permission: this.Meta.Permission
+          }
         }),
-        error: null,
+        error: null
       }
     } catch (e) {
       return { encoded: null, error: e }
@@ -75,7 +75,7 @@ export class EventTransaction {
         decoded.Meta.Sum,
         decoded.Meta.Size,
         decoded.Meta.CreatedAt,
-        decoded.Meta.Permission,
+        decoded.Meta.Permission
       )
 
       return { eventTransaction: this, error: null }

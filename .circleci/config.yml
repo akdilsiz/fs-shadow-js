@@ -11,6 +11,9 @@ jobs:
       - node/install-packages:
           pkg-manager: pnpm
       - run:
+          command: pnpm lint:check
+          name: Linter
+      - run:
           command: pnpm test:all
           name: Run tests
       - run:
@@ -19,7 +22,7 @@ jobs:
       - coveralls/upload:
           parallel: false
           verbose: true
-          carryforward: "All tests"
+          carryforward: 'All tests'
 workflows:
   test_fs_shadow_js:
     jobs:

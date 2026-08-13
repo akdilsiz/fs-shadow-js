@@ -1,8 +1,8 @@
 import { FileInfo, IPath } from './path'
 
 export declare class VirtualPath implements IPath {
-  p: string;
-  isDir: boolean;
+  p: string
+  isDir: boolean
   constructor(p: string, isDir: boolean)
   IsVirtual(): boolean
   IsDir(): boolean

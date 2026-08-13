@@ -16,7 +16,7 @@ export declare class MetaData {
     sum?: string,
     size?: number,
     createdAt?: number,
-    permission?: string,
+    permission?: string
   )
 
   FromJSON(value: string): { metaData?: MetaData; error?: Error }
@@ -46,7 +46,7 @@ export declare class ExtraPayload {
     sum?: string,
     size?: number,
     createdAt?: number,
-    permission?: string,
+    permission?: string
   )
 
   SetUTCCreatedAt(v: number): ExtraPayload

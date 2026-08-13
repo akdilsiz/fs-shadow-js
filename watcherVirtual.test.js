@@ -16,10 +16,10 @@ const makeDummyTree = () => {
       new FileNode([], 'a', v4(), rootUUID),
       new FileNode([], 'b', v4(), rootUUID),
       new FileNode([], 'c', v4(), rootUUID),
-      new FileNode([], 'd', v4(), rootUUID),
+      new FileNode([], 'd', v4(), rootUUID)
     ],
     'alphabet',
-    rootUUID,
+    rootUUID
   )
 }
 
@@ -44,19 +44,19 @@ describe('VirtualTree Tests', () => {
       folder = `${testFolder}/test`,
       folderPath = new VirtualPath(folder, true),
       eventFolderPath = folderPath.ExcludePath(
-        new VirtualPath(rootFolder, true),
+        new VirtualPath(rootFolder, true)
       ),
       emptyFile = `${testFolder}/test.txt`,
       filePath = new VirtualPath(emptyFile, false),
       eventFilePath = filePath.ExcludePath(new VirtualPath(rootFolder, true)),
       renameFilePath = new VirtualPath(`${testFolder}/test-2.txt`, false),
       renameEventFilePath = renameFilePath.ExcludePath(
-        new VirtualPath(rootFolder, true),
+        new VirtualPath(rootFolder, true)
       ),
       moveFolder = `${testFolder}/moveFolder`,
       moveFolderPath = new VirtualPath(moveFolder, true),
       moveFolderEventPath = moveFolderPath.ExcludePath(
-        new VirtualPath(rootFolder, true),
+        new VirtualPath(rootFolder, true)
       ),
       movedFilePath = new VirtualPath(`${moveFolder}/test-2.txt`, true),
       root = new FileNode(
@@ -64,13 +64,13 @@ describe('VirtualTree Tests', () => {
         rootPath.Name(),
         rootUUID,
         '',
-        new MetaData(true),
+        new MetaData(true)
       ),
       virtualTree = new VirtualTree(root, path, path.ParentPath())
 
     const { eventTransaction } = await virtualTree.Handler(
       new Event(Create, eventFolderPath, folderPath),
-      new ExtraPayload(v4()),
+      new ExtraPayload(v4())
     )
 
     unitJS.value(eventTransaction).isInstanceOf(EventTransaction)
@@ -78,14 +78,14 @@ describe('VirtualTree Tests', () => {
 
     const { eventTransaction: eventTransaction2 } = await virtualTree.Handler(
       new Event(Create, eventFilePath, filePath),
-      new ExtraPayload(v4()),
+      new ExtraPayload(v4())
     )
 
     unitJS.value(eventTransaction2).isInstanceOf(EventTransaction)
     unitJS.assert.equal(2, virtualTree.FileTree.Subs.length)
 
     const { eventTransaction: eventTransaction3 } = await virtualTree.Handler(
-      new Event(Rename, eventFilePath, renameEventFilePath),
+      new Event(Rename, eventFilePath, renameEventFilePath)
     )
 
     unitJS.value(eventTransaction3).isInstanceOf(EventTransaction)
@@ -95,19 +95,19 @@ describe('VirtualTree Tests', () => {
 
     const { eventTransaction: eventTransaction4 } = await virtualTree.Handler(
       new Event(Create, moveFolderEventPath, moveFolderPath),
-      new ExtraPayload(v4()),
+      new ExtraPayload(v4())
     )
 
     unitJS.value(eventTransaction4).isInstanceOf(EventTransaction)
     unitJS.assert.equal(3, virtualTree.FileTree.Subs.length)
 
     const { eventTransaction: eventTransaction5 } = await virtualTree.Handler(
-      new Event(Move, renameEventFilePath, moveFolderEventPath),
+      new Event(Move, renameEventFilePath, moveFolderEventPath)
     )
 
     unitJS.value(eventTransaction5).isInstanceOf(EventTransaction)
     const searched = virtualTree.SearchByPath(
-      movedFilePath.ExcludePath(new VirtualPath(rootFolder, true)).String(),
+      movedFilePath.ExcludePath(new VirtualPath(rootFolder, true)).String()
     )
     unitJS.assert.equal(eventTransaction4.UUID, searched.ParentUUID)
     unitJS
@@ -115,44 +115,42 @@ describe('VirtualTree Tests', () => {
       .isNull()
 
     const { eventTransaction: eventTransaction6 } = await virtualTree.Handler(
-      new Event(Remove, eventFolderPath),
+      new Event(Remove, eventFolderPath)
     )
 
     unitJS.value(eventTransaction6).isInstanceOf(EventTransaction)
     unitJS.value(virtualTree.SearchByUUID(eventTransaction6.UUID)).isNull()
 
-    await virtualTree.Handler(new Event(Write, movedFilePath)).catch((err) => {
+    await virtualTree.Handler(new Event(Write, movedFilePath)).catch(err => {
       unitJS.value(err).isInstanceOf(Error)
     })
 
     await virtualTree
       .Handler(
         new Event(Create, moveFolderEventPath, moveFolderPath),
-        new ExtraPayload(v4()),
+        new ExtraPayload(v4())
       )
-      .catch((err) => {
+      .catch(err => {
         unitJS.value(err).is(new Error(ErrFileNodeExists))
       })
 
-    await virtualTree
-      .Handler(new Event(Remove, eventFolderPath))
-      .catch((err) => {
-        unitJS.value(err).is(new Error(ErrFileNodeNotFound))
-      })
+    await virtualTree.Handler(new Event(Remove, eventFolderPath)).catch(err => {
+      unitJS.value(err).is(new Error(ErrFileNodeNotFound))
+    })
 
     await virtualTree
       .Handler(new Event(Rename, eventFilePath, renameEventFilePath))
-      .catch((err) => {
+      .catch(err => {
         unitJS.value(err).is(new Error(ErrFileNodeNotFound))
       })
 
     await virtualTree
       .Handler(new Event(Move, renameEventFilePath, moveFolderEventPath))
-      .catch((err) => {
+      .catch(err => {
         unitJS.value(err).is(new Error(ErrFileNodeNotFound))
       })
 
-    await virtualTree.Write(movedFilePath).catch((err) => {
+    await virtualTree.Write(movedFilePath).catch(err => {
       unitJS.assert.equal(err.message, 'unhandled event')
     })
 
@@ -163,7 +161,7 @@ describe('VirtualTree Tests', () => {
     const dummyTree = makeDummyTree(),
       virtualTree = new VirtualTree(
         new FileNode(),
-        new VirtualPath('/tmp'),
+        new VirtualPath('/tmp')
       ).Restore(dummyTree)
 
     unitJS.assert.equal(dummyTree, virtualTree.FileTree)
