@@ -11,7 +11,7 @@ export class VirtualTree {
   constructor(
     fileTree = new FileNode(),
     path = new VirtualPath(),
-    parentPath = new VirtualPath(),
+    parentPath = new VirtualPath()
   ) {
     this.FileTree = fileTree
     this.Path = path
@@ -110,7 +110,7 @@ export class VirtualTree {
    */
   async Remove(fromPath) {
     const { fileNode } = await this.FileTree.Remove(
-      fromPath.ExcludePath(this.ParentPath),
+      fromPath.ExcludePath(this.ParentPath)
     )
 
     return { fileNode: fileNode }
@@ -124,7 +124,7 @@ export class VirtualTree {
   async Rename(fromPath, toPath) {
     const { fileNode } = await this.FileTree.Rename(
       fromPath.ExcludePath(this.ParentPath),
-      toPath.ExcludePath(this.ParentPath),
+      toPath.ExcludePath(this.ParentPath)
     )
 
     return { fileNode: fileNode }
@@ -138,7 +138,7 @@ export class VirtualTree {
   async Move(fromPath, toPath) {
     const { fileNode } = await this.FileTree.Move(
       fromPath.ExcludePath(this.ParentPath),
-      toPath.ExcludePath(this.ParentPath),
+      toPath.ExcludePath(this.ParentPath)
     )
 
     return { fileNode: fileNode }
@@ -159,7 +159,7 @@ export class VirtualTree {
       event,
       node.UUID,
       node.ParentUUID,
-      node.Meta,
+      node.Meta
     )
   }
 }
@@ -174,7 +174,7 @@ export class VirtualTree {
 export async function NewVirtualPathWatcher(
   uUID = '',
   virtualPath = '',
-  extra = new ExtraPayload(),
+  extra = new ExtraPayload()
 ) {
   const p = new VirtualPath(virtualPath, true),
     r = new FileNode([], p.Name(), uUID, '', new MetaData(true)),

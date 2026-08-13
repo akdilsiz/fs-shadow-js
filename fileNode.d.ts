@@ -12,7 +12,7 @@ export declare class FileNode {
     name: string,
     uUID: string,
     parentUUID: string,
-    meta: MetaData,
+    meta: MetaData
   )
   FromJSON(value: string): { fileNode?: FileNode; error?: Error }
   FromObject(obj: Record<string, any>): { fileNode?: FileNode; error?: Error }
@@ -34,9 +34,12 @@ export declare class FileNode {
   Move(fromPath: IPath, toPath: IPath): Promise<{ fileNode: FileNode }>
   Rename(fromPath: IPath, toPath: IPath): Promise<{ fileNode: FileNode }>
   Remove(fromPath: IPath): Promise<{ fileNode: FileNode }>
-  RemoveByUUID(uUID: string, parentUUID?: string): Promise<{ fileNode: FileNode }>
+  RemoveByUUID(
+    uUID: string,
+    parentUUID?: string
+  ): Promise<{ fileNode: FileNode }>
   UpdateWithExtra(extra: ExtraPayload): FileNode
   Create(fromPath: IPath, absolutePath: IPath): Promise<{ fileNode: FileNode }>
-  Search(path: string): FileNode|null
-  SearchByUUID(uUID: string): FileNode|null
+  Search(path: string): FileNode | null
+  SearchByUUID(uUID: string): FileNode | null
 }

@@ -13,9 +13,12 @@ export declare class EventTransaction {
     type: EventType,
     uUID: string,
     parentUUID: string,
-    meta: MetaData,
+    meta: MetaData
   )
-  Encode(): {encoded?: Uint8Array, error?: Error}
-  Decode(encoded: Uint8Array): {eventTransaction?: EventTransaction, error?: Error}
+  Encode(): { encoded?: Uint8Array; error?: Error }
+  Decode(encoded: Uint8Array): {
+    eventTransaction?: EventTransaction
+    error?: Error
+  }
   ToFileNode(): FileNode
 }

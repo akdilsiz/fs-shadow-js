@@ -17,7 +17,7 @@ describe('EventTransaction Tests', () => {
         Create,
         uUID,
         parentUUID,
-        metaData,
+        metaData
       )
 
     unitJS.assert.equal('transaction1', eventTransaction.Name)
@@ -39,7 +39,7 @@ describe('EventTransaction Tests', () => {
           'invalid',
           uUID,
           parentUUID,
-          metaData,
+          metaData
         )
       })
       .is(new Error(ErrArguments))
@@ -54,7 +54,7 @@ describe('EventTransaction Tests', () => {
         Create,
         uUID,
         parentUUID,
-        metaData,
+        metaData
       ),
       { encoded, error } = eventTransaction.Encode(),
       value = encode({
@@ -67,8 +67,8 @@ describe('EventTransaction Tests', () => {
           Sum: metaData.Sum,
           Size: metaData.Size,
           CreatedAt: metaData.CreatedAt,
-          Permission: metaData.Permission,
-        },
+          Permission: metaData.Permission
+        }
       })
 
     unitJS.value(error).isNull()
@@ -93,10 +93,10 @@ describe('EventTransaction Tests', () => {
                 } catch (e) {
                   console.log(e)
                 }
-              },
+              }
             }
-          },
-        },
+          }
+        }
       ),
       { encoded, error } = eventTransaction.Encode()
 
@@ -113,7 +113,7 @@ describe('EventTransaction Tests', () => {
         Create,
         uUID,
         parentUUID,
-        metaData,
+        metaData
       ),
       { encoded, error } = eventTransaction.Encode(),
       { eventTransaction: decodedEventTransaction, error: error2 } =
@@ -128,27 +128,27 @@ describe('EventTransaction Tests', () => {
     unitJS.assert.equal(decodedEventTransaction.UUID, eventTransaction.UUID)
     unitJS.assert.equal(
       decodedEventTransaction.ParentUUID,
-      eventTransaction.ParentUUID,
+      eventTransaction.ParentUUID
     )
     unitJS.assert.equal(
       decodedEventTransaction.Meta.IsDir,
-      eventTransaction.Meta.IsDir,
+      eventTransaction.Meta.IsDir
     )
     unitJS.assert.equal(
       decodedEventTransaction.Meta.Size,
-      eventTransaction.Meta.Size,
+      eventTransaction.Meta.Size
     )
     unitJS.assert.equal(
       decodedEventTransaction.Meta.Sum,
-      eventTransaction.Meta.Sum,
+      eventTransaction.Meta.Sum
     )
     unitJS.assert.equal(
       decodedEventTransaction.Meta.CreatedAt,
-      eventTransaction.Meta.CreatedAt,
+      eventTransaction.Meta.CreatedAt
     )
     unitJS.assert.equal(
       decodedEventTransaction.Meta.Permission,
-      eventTransaction.Meta.Permission,
+      eventTransaction.Meta.Permission
     )
   })
 
@@ -170,8 +170,8 @@ describe('EventTransaction Tests', () => {
         {
           ToObject: () => {
             return 'object'
-          },
-        },
+          }
+        }
       ),
       { encoded, error } = eventTransaction.Encode(),
       { eventTransaction: decodedEventTransaction, error: error2 } =
@@ -195,8 +195,8 @@ describe('EventTransaction Tests', () => {
           CreatedAt: -1,
           IsDir: false,
           Sum: '',
-          Permission: '',
-        },
+          Permission: ''
+        }
       }),
       { eventTransaction: decodedEventTransaction, error: error2 } =
         new EventTransaction().Decode(encoded)
@@ -215,7 +215,7 @@ describe('EventTransaction Tests', () => {
         Create,
         uUID,
         parentUUID,
-        metaData,
+        metaData
       ).ToFileNode()
 
     unitJS.assert.equal(fileNode.ToJSON(), eventTransactionFileNode.ToJSON())

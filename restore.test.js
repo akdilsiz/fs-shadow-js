@@ -6,7 +6,7 @@ import { EventTransaction } from './eventTransaction.js'
 import { NewVirtualPathWatcher } from './watcherVirtual.js'
 import {
   CreateFileNodeWithTransactions,
-  RestoreWatcherWithTransactions,
+  RestoreWatcherWithTransactions
 } from './restore.js'
 
 const generateTransactionsBytes = () => {
@@ -19,7 +19,7 @@ const generateTransactionsBytes = () => {
         new EventTransaction('s-test-2-rename', Rename, uUIDs[3], uUIDs[0]),
         new EventTransaction('s-test-2-rename', Move, uUIDs[3], uUIDs[0]),
         new EventTransaction('s-test-3', Create, uUIDs[4], uUIDs[0]),
-        new EventTransaction('s-test-3', Remove, uUIDs[4], uUIDs[0]),
+        new EventTransaction('s-test-3', Remove, uUIDs[4], uUIDs[0])
       ],
       encodedTxnS = []
 
@@ -40,7 +40,7 @@ const generateTransactionsBytes = () => {
         new EventTransaction('s-test-2-rename', Rename, uUIDs[3], uUIDs[0]),
         new EventTransaction('s-test-2-moved', Move, uUIDs[3], uUIDs[1]),
         new EventTransaction('s-test-2-moved', Remove, uUIDs[3], uUIDs[1]),
-        new EventTransaction('s-test-3', Create, uUIDs[4], uUIDs[0]),
+        new EventTransaction('s-test-3', Create, uUIDs[4], uUIDs[0])
       ],
       encodedTxnS = []
 
@@ -61,7 +61,7 @@ describe('Restore Tests', () => {
     unitJS.assert.equal('s-test-1', fileNode.Subs[0].Name)
   })
 
-  it('should be error CreateFileNodeWithTransactions is invalid transactions', (done) => {
+  it('should be error CreateFileNodeWithTransactions is invalid transactions', done => {
     CreateFileNodeWithTransactions(['tx1', 'tx2'])
       .then(() => {
         done(new Error('invalid'))
@@ -78,7 +78,7 @@ describe('Restore Tests', () => {
     const { watcher } = await NewVirtualPathWatcher(
       rootUUID,
       root,
-      new ExtraPayload(v4(), true),
+      new ExtraPayload(v4(), true)
     )
 
     await RestoreWatcherWithTransactions(txnS, watcher)
@@ -93,7 +93,7 @@ describe('Restore Tests', () => {
     const { watcher } = await NewVirtualPathWatcher(
       rootUUID,
       root,
-      new ExtraPayload(v4(), true),
+      new ExtraPayload(v4(), true)
     )
 
     await RestoreWatcherWithTransactions(txnS, watcher)
@@ -101,7 +101,7 @@ describe('Restore Tests', () => {
     unitJS.value(watcher.FileTree.SearchByUUID(uUIDs[3])).isNull()
     unitJS.assert.equal(
       watcher.FileTree.SearchByUUID(uUIDs[4]).Name,
-      's-test-3',
+      's-test-3'
     )
   })
 
@@ -112,10 +112,10 @@ describe('Restore Tests', () => {
     const { watcher } = await NewVirtualPathWatcher(
       rootUUID,
       root,
-      new ExtraPayload(v4(), true),
+      new ExtraPayload(v4(), true)
     )
 
-    await RestoreWatcherWithTransactions(txnS, watcher).catch((err) => {
+    await RestoreWatcherWithTransactions(txnS, watcher).catch(err => {
       unitJS.value(err).isInstanceOf(Error)
     })
   })

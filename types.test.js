@@ -16,22 +16,19 @@ describe('Types Tests', () => {
       metaData = new MetaData(
         true,
         hexEncode(
-          sha256
-            .create()
-            .update(new TextEncoder().encode('sumSHA256'))
-            .digest(),
+          sha256.create().update(new TextEncoder().encode('sumSHA256')).digest()
         ),
         123,
         createdAt.getSeconds(),
-        'permission',
+        'permission'
       )
 
     unitJS.assert.equal(true, metaData.IsDir)
     unitJS.assert.equal(
       metaData.Sum,
       hexEncode(
-        sha256.create().update(new TextEncoder().encode('sumSHA256')).digest(),
-      ),
+        sha256.create().update(new TextEncoder().encode('sumSHA256')).digest()
+      )
     )
     unitJS.assert.equal(metaData.Size, 123)
     unitJS.assert.equal(metaData.CreatedAt, createdAt.getSeconds())
@@ -48,20 +45,17 @@ describe('Types Tests', () => {
           createdAt.getUTCHours(),
           createdAt.getUTCMinutes(),
           createdAt.getUTCSeconds(),
-          createdAt.getUTCMilliseconds(),
-        ),
+          createdAt.getUTCMilliseconds()
+        )
       ),
       metaData = new MetaData(
         true,
         hexEncode(
-          sha256
-            .create()
-            .update(new TextEncoder().encode('sumSHA256'))
-            .digest(),
+          sha256.create().update(new TextEncoder().encode('sumSHA256')).digest()
         ),
         123,
         createdAt.getSeconds(),
-        'permission',
+        'permission'
       )
 
     metaData.SetUTCCreatedAt(utcCreatedAt.getSeconds())
@@ -79,12 +73,9 @@ describe('Types Tests', () => {
     unitJS.assert.equal(true, metaData.IsDir)
     unitJS.assert.equal(
       hexEncode(
-        sha256
-          .create()
-          .update(new TextEncoder().encode('sumSHA256-2'))
-          .digest(),
+        sha256.create().update(new TextEncoder().encode('sumSHA256-2')).digest()
       ),
-      metaData.Sum,
+      metaData.Sum
     )
     unitJS.assert.equal(12345, metaData.Size)
     unitJS.assert.equal(createdAt.getSeconds(), metaData.CreatedAt)
@@ -128,11 +119,11 @@ describe('Types Tests', () => {
             sha256
               .create()
               .update(new TextEncoder().encode('sumSHA256'))
-              .digest(),
+              .digest()
           ),
           -1,
           createdAt.getSeconds(),
-          'permission',
+          'permission'
         )
       })
       .is(new Error(ErrArguments))
@@ -147,11 +138,11 @@ describe('Types Tests', () => {
             sha256
               .create()
               .update(new TextEncoder().encode('sumSHA256'))
-              .digest(),
+              .digest()
           ),
           123,
           -1,
-          'permission',
+          'permission'
         )
       })
       .is(new Error(ErrArguments))
@@ -164,14 +155,11 @@ describe('Types Tests', () => {
         uid,
         true,
         hexEncode(
-          sha256
-            .create()
-            .update(new TextEncoder().encode('sumSHA256'))
-            .digest(),
+          sha256.create().update(new TextEncoder().encode('sumSHA256')).digest()
         ),
         123,
         createdAt.getSeconds(),
-        'permission',
+        'permission'
       )
 
     unitJS.assert.equal(uid, extraPayload.UUID)
@@ -179,8 +167,8 @@ describe('Types Tests', () => {
     unitJS.assert.equal(
       extraPayload.Sum,
       hexEncode(
-        sha256.create().update(new TextEncoder().encode('sumSHA256')).digest(),
-      ),
+        sha256.create().update(new TextEncoder().encode('sumSHA256')).digest()
+      )
     )
     unitJS.assert.equal(extraPayload.Size, 123)
     unitJS.assert.equal(extraPayload.CreatedAt, createdAt.getSeconds())
@@ -198,21 +186,18 @@ describe('Types Tests', () => {
           createdAt.getUTCHours(),
           createdAt.getUTCMinutes(),
           createdAt.getUTCSeconds(),
-          createdAt.getUTCMilliseconds(),
-        ),
+          createdAt.getUTCMilliseconds()
+        )
       ),
       extraPayload = new ExtraPayload(
         uid,
         true,
         hexEncode(
-          sha256
-            .create()
-            .update(new TextEncoder().encode('sumSHA256'))
-            .digest(),
+          sha256.create().update(new TextEncoder().encode('sumSHA256')).digest()
         ),
         123,
         createdAt.getSeconds(),
-        'permission',
+        'permission'
       )
 
     extraPayload.SetUTCCreatedAt(utcCreatedAt.getSeconds())
@@ -232,12 +217,9 @@ describe('Types Tests', () => {
     unitJS.assert.equal(true, extraPayload.IsDir)
     unitJS.assert.equal(
       hexEncode(
-        sha256
-          .create()
-          .update(new TextEncoder().encode('sumSHA256-2'))
-          .digest(),
+        sha256.create().update(new TextEncoder().encode('sumSHA256-2')).digest()
       ),
-      extraPayload.Sum,
+      extraPayload.Sum
     )
     unitJS.assert.equal(12345, extraPayload.Size)
     unitJS.assert.equal(createdAt.getSeconds(), extraPayload.CreatedAt)
@@ -284,11 +266,11 @@ describe('Types Tests', () => {
             sha256
               .create()
               .update(new TextEncoder().encode('sumSHA256'))
-              .digest(),
+              .digest()
           ),
           -1,
           createdAt.getSeconds(),
-          'permission',
+          'permission'
         )
       })
       .is(new Error(ErrArguments))
@@ -304,11 +286,11 @@ describe('Types Tests', () => {
             sha256
               .create()
               .update(new TextEncoder().encode('sumSHA256'))
-              .digest(),
+              .digest()
           ),
           123,
           -1,
-          'permission',
+          'permission'
         )
       })
       .is(new Error(ErrArguments))

@@ -1,28 +1,22 @@
 {
   "name": "fs-shadow-js",
-  "version": "2.1.8",
+  "version": "2.1.9",
   "description": "FS-Shadow Javascript",
-  "main": "watcher.js",
-  "type": "module",
-  "scripts": {
-    "lint": "eslint",
-    "lint:fix": "eslint --fix",
-    "format": "prettier --write \"**/*.{js,md,json}\" --ignore-path .prettierignore",
-    "test": "export NODE_ENV=test || SET \"NODE_ENV=test\" && mocha --check-leaks --bail --full-trace --require esm",
-    "coverage": "export NODE_ENV=test || SET \"NODE_ENV=test\" && export NODE_OPTIONS='--experimental-loader @istanbuljs/esm-loader-hook --no-warnings' || SET \"NODE_OPTIONS=--experimental-loader @istanbuljs/esm-loader-hook --no-warnings\" && nyc --reporter=text mocha --require esm --experimental-modules",
-    "test:all": "export NODE_ENV=test || SET \"NODE_ENV=test\" && mocha --check-leaks --bail --full-trace --require esm --experimental-modules '*.test.js'",
-    "coverage:all": "export NODE_ENV=test || SET \"NODE_ENV=test\" && export NODE_OPTIONS='--experimental-loader @istanbuljs/esm-loader-hook --no-warnings' || SET \"NODE_OPTIONS=--experimental-loader @istanbuljs/esm-loader-hook --no-warnings\" && nyc  --reporter=lcov mocha --require esm --report lcovonly -- -R spec '*.test.js'",
-    "coveralls": "export NODE_ENV=test || SET \"NODE_ENV=test\" && export NODE_OPTIONS='--experimental-loader @istanbuljs/esm-loader-hook --no-warnings' || SET \"NODE_OPTIONS=--experimental-loader @istanbuljs/esm-loader-hook --no-warnings\" && nyc  --reporter=lcov mocha --require esm --report lcovonly -- -R spec '*.test.js' && cat ./coverage/lcov.info | ./node_modules/coveralls-next/bin/coveralls.js && rm -rf ./coverage"
+  "keywords": [
+    "file-system",
+    "fs",
+    "virtual"
+  ],
+  "homepage": "https://github.com/akdilsiz/fs-shadow-js#readme",
+  "bugs": {
+    "url": "https://github.com/akdilsiz/fs-shadow-js/issues"
   },
+  "license": "MIT",
+  "author": "Abdulkadir Dilsiz <https://github.com/akdilsiz>",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/akdilsiz/fs-shadow-js.git"
   },
-  "keywords": [
-    "fs",
-    "virtual",
-    "file-system"
-  ],
   "files": [
     "**/*.d.ts",
     "errors.js",
@@ -38,31 +32,35 @@
     "watcher.js",
     "watcherVirtual.js"
   ],
-  "author": "Abdulkadir Dilsiz <https://github.com/akdilsiz>",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/akdilsiz/fs-shadow-js/issues"
-  },
-  "homepage": "https://github.com/akdilsiz/fs-shadow-js#readme",
-  "packageManager": "pnpm@11.5.1",
-  "devDependencies": {
-    "@eslint/js": "^10.0.1",
-    "@istanbuljs/esm-loader-hook": "^0.3.0",
-    "@noble/hashes": "^2.2.0",
-    "@types/mocha": "^10.0.10",
-    "coveralls-next": "^5.0.0",
-    "eslint": "^10.4.1",
-    "eslint-plugin-mocha": "^11.3.0",
-    "esm": "^3.2.25",
-    "globals": "^16.5.0",
-    "mocha": "^11.7.6",
-    "mocha-lcov-reporter": "^1.3.0",
-    "nyc": "^17.1.0",
-    "prettier": "^3.8.3",
-    "unit.js": "^2.1.1"
+  "type": "module",
+  "main": "watcher.js",
+  "scripts": {
+    "format": "oxfmt ./",
+    "lint": "oxfmt ./ && oxlint --fix ./",
+    "lint:check": "oxfmt --check ./ && oxlint ./",
+    "test": "export NODE_ENV=test || SET \"NODE_ENV=test\" && mocha --check-leaks --bail --full-trace --require esm",
+    "coverage": "export NODE_ENV=test || SET \"NODE_ENV=test\" && export NODE_OPTIONS='--experimental-loader @istanbuljs/esm-loader-hook --no-warnings' || SET \"NODE_OPTIONS=--experimental-loader @istanbuljs/esm-loader-hook --no-warnings\" && nyc --reporter=text mocha --require esm --experimental-modules",
+    "test:all": "export NODE_ENV=test || SET \"NODE_ENV=test\" && mocha --check-leaks --bail --full-trace --require esm --experimental-modules '*.test.js'",
+    "coverage:all": "export NODE_ENV=test || SET \"NODE_ENV=test\" && export NODE_OPTIONS='--experimental-loader @istanbuljs/esm-loader-hook --no-warnings' || SET \"NODE_OPTIONS=--experimental-loader @istanbuljs/esm-loader-hook --no-warnings\" && nyc  --reporter=lcov mocha --require esm --report lcovonly -- -R spec '*.test.js'",
+    "coveralls": "export NODE_ENV=test || SET \"NODE_ENV=test\" && export NODE_OPTIONS='--experimental-loader @istanbuljs/esm-loader-hook --no-warnings' || SET \"NODE_OPTIONS=--experimental-loader @istanbuljs/esm-loader-hook --no-warnings\" && nyc  --reporter=lcov mocha --require esm --report lcovonly -- -R spec '*.test.js' && cat ./coverage/lcov.info | ./node_modules/coveralls-next/bin/coveralls.js && rm -rf ./coverage"
   },
   "dependencies": {
     "@msgpack/msgpack": "^3.1.3",
-    "uuid": "^14.0.0"
-  }
+    "uuid": "^14.0.1"
+  },
+  "devDependencies": {
+    "@istanbuljs/esm-loader-hook": "^0.3.0",
+    "@noble/hashes": "^2.3.0",
+    "@types/mocha": "^10.0.10",
+    "coveralls-next": "^5.0.0",
+    "esm": "^3.2.25",
+    "globals": "^16.5.0",
+    "mocha": "^11.8.0",
+    "mocha-lcov-reporter": "^1.3.0",
+    "nyc": "^17.1.0",
+    "oxfmt": "^0.63.0",
+    "oxlint": "^1.78.0",
+    "unit.js": "^2.1.1"
+  },
+  "packageManager": "pnpm@11.21.0"
 }

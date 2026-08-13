@@ -1,4 +1,4 @@
-export declare type ErrMessage = string;
+export declare type ErrMessage = string
 
 export declare const ErrArguments: ErrMessage,
   ErrToFileNodeNotFound: ErrMessage,
