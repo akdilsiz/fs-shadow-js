@@ -23,7 +23,27 @@ jobs:
           parallel: false
           verbose: true
           carryforward: 'All tests'
+      # pnpm 11 needs Node >= 22.13, so packages are installed here and
+      # reused by the Node 20 job instead of being installed again.
+      - persist_to_workspace:
+          root: .
+          paths:
+            - node_modules
+  # Runs the suite on the lowest supported Node version (engines.node).
+  test-node20:
+    docker:
+      - image: cimg/node:20.19
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - run:
+          command: node --version && npm run test:all
+          name: Run tests on Node 20
 workflows:
   test_fs_shadow_js:
     jobs:
       - test
+      - test-node20:
+          requires:
+            - test
