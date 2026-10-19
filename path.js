@@ -62,9 +62,11 @@ function truncateUtf8(value, maxBytes) {
  * @return {string}
  */
 function fnv1aHex(bytes) {
-  // FNV-1a 32-bit offset basis 0x811c9dc5, written in decimal because some
-  // static analyzers misread hex literals above 2^31 (it is a safe integer).
-  let hash = 2166136261
+  // FNV-1a 32-bit offset basis 0x811c9dc5 written as the same 32 bits in
+  // signed form: ^ and Math.imul work on int32 anyway and >>> 0 below turns
+  // the result unsigned, while static analyzers (PMD) reject literals above
+  // 2^31 - 1 as inexact.
+  let hash = -2128831035
 
   for (const byte of bytes) {
     hash ^= byte
