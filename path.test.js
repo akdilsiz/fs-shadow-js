@@ -109,19 +109,19 @@ describe('safeFileName Tests', () => {
   })
 
   // Expected hashes come from an independent FNV-1a 32-bit implementation.
-  it('cuts long ascii names and keeps the extension', () => {
+  it('cuts long ascii names, marks the cut and keeps the extension', () => {
     const name = 'a'.repeat(300) + '.txt',
       result = safeFileName(name)
 
-    unitJS.assert.equal('a'.repeat(227) + '~96b24767.txt', result)
+    unitJS.assert.equal('a'.repeat(224) + '...~96b24767.txt', result)
     unitJS.assert.equal(240, byteLength(result))
   })
 
   it('never splits multi-byte characters', () => {
     const result = safeFileName('ş'.repeat(200))
 
-    unitJS.assert.equal('ş'.repeat(115) + '~a1010ac5', result)
-    unitJS.assert.equal(239, byteLength(result))
+    unitJS.assert.equal('ş'.repeat(114) + '...~a1010ac5', result)
+    unitJS.assert.equal(240, byteLength(result))
 
     const emojiResult = safeFileName('😀'.repeat(100) + '.png'),
       emojiBytes = encoder.encode(emojiResult)
@@ -147,17 +147,22 @@ describe('safeFileName Tests', () => {
     unitJS.assert.notEqual(first, second)
   })
 
-  it('drops extensions that are too long or leave no room', () => {
-    const longExtension = safeFileName('d'.repeat(250) + '.' + 'e'.repeat(40)),
+  it('keeps long extensions while the base still fits', () => {
+    const extension = '.' + 'e'.repeat(40),
+      longExtension = safeFileName('d'.repeat(250) + extension),
       hidden = safeFileName('.' + 'f'.repeat(300)),
-      tight = safeFileName('g'.repeat(20) + '.txt', 12)
+      tight = safeFileName('g'.repeat(20) + '.txt', 13)
 
-    unitJS.assert.equal(true, byteLength(longExtension) <= MaxFileNameBytes)
-    unitJS.assert.equal(true, longExtension.startsWith('d'.repeat(231)))
+    unitJS.assert.equal(
+      'd'.repeat(187) + '...~055676c9' + extension,
+      longExtension
+    )
+    unitJS.assert.equal(MaxFileNameBytes, byteLength(longExtension))
     unitJS.assert.equal(true, hidden.startsWith('.f'))
     unitJS.assert.equal(MaxFileNameBytes, byteLength(hidden))
-    unitJS.assert.equal(12, byteLength(tight))
-    unitJS.assert.equal(true, tight.startsWith('ggg~'))
+    // No room for ".txt" next to one base byte, so the whole name is cut.
+    unitJS.assert.equal(13, byteLength(tight))
+    unitJS.assert.equal(true, tight.startsWith('g...~'))
   })
 
   it('supports a custom limit', () => {
@@ -170,7 +175,7 @@ describe('safeFileName Tests', () => {
   it('throws ErrArguments for invalid arguments', () => {
     unitJS.assert.throws(() => safeFileName(null), new RegExp(ErrArguments))
     unitJS.assert.throws(() => safeFileName(1), new RegExp(ErrArguments))
-    unitJS.assert.throws(() => safeFileName('a', 9), new RegExp(ErrArguments))
+    unitJS.assert.throws(() => safeFileName('a', 12), new RegExp(ErrArguments))
     unitJS.assert.throws(() => safeFileName('a', 1.5), new RegExp(ErrArguments))
     unitJS.assert.throws(() => safeFileName('a', NaN), new RegExp(ErrArguments))
   })

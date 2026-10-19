@@ -9,11 +9,12 @@ export const Separator = '/'
  */
 export const MaxFileNameBytes = 240
 
-// Extensions longer than this are not real extensions (for example a dot in
-// the middle of a long title), so they are truncated together with the base.
-const maxExtensionBytes = 16,
+// Marks that the base name was cut. ASCII only, so bytes equal length.
+const ellipsis = '...',
   // '~' + 8 hex digits, ASCII only, so its byte length equals its length.
   hashSuffixBytes = 9,
+  // Smallest limit that still fits one base byte, the ellipsis and the hash.
+  minFileNameBytes = 1 + ellipsis.length + hashSuffixBytes,
   encoder = new TextEncoder()
 
 /**
@@ -73,25 +74,41 @@ function fnv1aHex(bytes) {
 }
 
 /**
+ * Splits a name into stem and extension at the last dot. A leading dot marks
+ * a hidden file (".bashrc"), not an extension.
+ * @param {string} name
+ * @return {{stem: string, extension: string}}
+ */
+function splitExtension(name) {
+  const dotIndex = name.lastIndexOf('.')
+
+  if (dotIndex <= 0) return { stem: name, extension: '' }
+
+  return { stem: name.slice(0, dotIndex), extension: name.slice(dotIndex) }
+}
+
+/**
  * Makes a file name fit into maxBytes UTF-8 bytes so it can be written to
  * file systems with a per-name byte limit.
  *
  * Names that already fit are returned unchanged, so existing names, stored
- * transactions and trees keep working. Longer names keep a short extension,
- * cut the base name on a code point boundary and get a deterministic
- * "~xxxxxxxx" hash of the full original name, so the same input always gives
- * the same output and names sharing a long prefix stay distinct (collisions
- * are unlikely, not impossible). Calling it again on its output is a no-op.
+ * transactions and trees keep working. Longer names become
+ * "{cut base}...~xxxxxxxx{extension}": the base is cut on a code point
+ * boundary, "..." marks the cut and "~xxxxxxxx" is a deterministic hash of the
+ * full name, so the same input always gives the same output and names sharing
+ * a long prefix stay distinct (collisions are unlikely, not impossible). The
+ * extension is kept whenever at least one base byte still fits. Calling it
+ * again on its output is a no-op.
  *
  * @param {string} name single file name without separators
- * @param {number} [maxBytes=MaxFileNameBytes] UTF-8 byte limit, integer > 9
+ * @param {number} [maxBytes=MaxFileNameBytes] UTF-8 byte limit, integer >= 13
  * @return {string}
  * @throws {Error} ErrArguments when name is not a string or maxBytes is not an
- *   integer greater than the hash suffix length
+ *   integer of at least 13
  */
 export function safeFileName(name, maxBytes = MaxFileNameBytes) {
   const validName = typeof name === 'string',
-    validMaxBytes = Number.isInteger(maxBytes) && maxBytes > hashSuffixBytes
+    validMaxBytes = Number.isInteger(maxBytes) && maxBytes >= minFileNameBytes
 
   if (!validName || !validMaxBytes) {
     throw new Error(ErrArguments)
@@ -101,27 +118,17 @@ export function safeFileName(name, maxBytes = MaxFileNameBytes) {
 
   if (nameBytes.length <= maxBytes) return name
 
-  const suffix = '~' + fnv1aHex(nameBytes),
-    dotIndex = name.lastIndexOf('.')
+  const marker = ellipsis + '~' + fnv1aHex(nameBytes),
+    parts = splitExtension(name),
+    extensionBytes = encoder.encode(parts.extension).length,
+    // Without one byte left for the base the extension is not really an
+    // extension (for example a dot in a long title), so cut the whole name.
+    keepExtension = extensionBytes + marker.length < maxBytes,
+    base = keepExtension ? parts.stem : name,
+    extension = keepExtension ? parts.extension : '',
+    baseBudget = maxBytes - marker.length - (keepExtension ? extensionBytes : 0)
 
-  // A leading dot marks a hidden file (".bashrc"), not an extension.
-  let extension = dotIndex > 0 ? name.slice(dotIndex) : '',
-    extensionBytes = encoder.encode(extension).length
-
-  const extensionTooLong = extensionBytes > maxExtensionBytes,
-    // Always leave at least one byte for the base so the result is not just
-    // the suffix and extension.
-    noRoomForBase = hashSuffixBytes + extensionBytes >= maxBytes
-
-  if (extensionTooLong || noRoomForBase) {
-    extension = ''
-    extensionBytes = 0
-  }
-
-  const base = extension ? name.slice(0, dotIndex) : name,
-    baseBudget = maxBytes - hashSuffixBytes - extensionBytes
-
-  return truncateUtf8(base, baseBudget) + suffix + extension
+  return truncateUtf8(base, baseBudget) + marker + extension
 }
 
 export class Path {
