@@ -20,14 +20,12 @@ const ellipsis = '...',
   // Extended_Pictographic also covers a few symbols such as © and ™.
   // Joiners, selectors and the keycap mark are combining characters, so they
   // are alternatives instead of class members (no-misleading-character-class).
+  // detect-unsafe-regex reports this pattern, but it has no quantifiers, so
+  // matching is linear (1 MB inputs are covered by the stress tests).
+  // eslint-disable-next-line security/detect-unsafe-regex
   emojiPattern =
     /[\p{Extended_Pictographic}\p{Emoji_Modifier}\p{Regional_Indicator}\u{E0020}-\u{E007F}]|\u200D|\uFE0E|\uFE0F|\u20E3/gu,
   encoder = new TextEncoder(),
-  // Characters Windows rejects in a name ("Naming Files, Paths, and
-  // Namespaces", Microsoft Learn); "/" is also the POSIX separator. Each one
-  // becomes "_", so names stay readable and keep their length. All are ASCII,
-  // so a 128-entry table keeps the per-character check allocation free.
-  reservedCharacterCodes = new Uint8Array(128),
   replacement = '_',
   // Device names Windows reserves in every folder, also with an extension
   // ("NUL.txt"); the superscript digits count as digits there.
@@ -92,16 +90,18 @@ function truncateUtf8(value, maxBytes) {
  * @return {string}
  */
 function fnv1aHex(bytes) {
-  // FNV-1a 32-bit offset basis 0x811c9dc5 written as the same 32 bits in
-  // signed form: ^ and Math.imul work on int32 anyway and >>> 0 below turns
-  // the result unsigned, while static analyzers (PMD) reject literals above
-  // 2^31 - 1 as inexact.
-  let hash = -2128831035
+  // FNV-1a 32-bit offset basis 0x811c9dc5 and prime 0x01000193, built from
+  // small decimal parts: static analyzers (PMD) flag the full literals as
+  // inexact. ^ and Math.imul work on int32 and >>> 0 makes the result
+  // unsigned, so the hash is unchanged.
+  const offsetBasis = (33052 << 16) | 40389,
+    prime = (1 << 24) + 403
 
-  // Indexed loop: iterating a Uint8Array with for...of is ~3x slower here.
-  for (let index = 0; index < bytes.length; index++) {
-    hash ^= bytes[index]
-    hash = Math.imul(hash, 0x01000193)
+  let hash = offsetBasis
+
+  for (const byte of bytes) {
+    hash ^= byte
+    hash = Math.imul(hash, prime)
   }
 
   return (hash >>> 0).toString(16).padStart(8, '0')
@@ -136,8 +136,28 @@ function cleanText(value) {
     .trim()
 }
 
-for (const char of '<>:"/\\|?*') {
-  reservedCharacterCodes[char.charCodeAt(0)] = 1
+/**
+ * Tells whether a UTF-16 code unit is a character Windows rejects in a name
+ * ("Naming Files, Paths, and Namespaces", Microsoft Learn); "/" is also the
+ * POSIX separator. A switch keeps the per-character check allocation free.
+ * @param {number} unit
+ * @return {boolean}
+ */
+function isReservedCharacter(unit) {
+  switch (unit) {
+    case 0x22: // "
+    case 0x2a: // *
+    case 0x2f: // /
+    case 0x3a: // :
+    case 0x3c: // <
+    case 0x3e: // >
+    case 0x3f: // ?
+    case 0x5c: // \
+    case 0x7c: // |
+      return true
+    default:
+      return false
+  }
 }
 
 /**
@@ -175,7 +195,7 @@ function portableName(name) {
 
     const control = unit <= 0x1f || (unit >= 0x7f && unit <= 0x9f),
       loneSurrogate = highSurrogate || lowSurrogate,
-      reserved = unit < 0x80 && reservedCharacterCodes[unit] === 1
+      reserved = isReservedCharacter(unit)
 
     if (!control && !loneSurrogate && !reserved) continue
 
