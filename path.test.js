@@ -168,10 +168,14 @@ describe('safeFileName Tests', () => {
   })
 
   it('throws ErrArguments for invalid arguments', () => {
-    unitJS.assert.throws(() => safeFileName(null), new RegExp(ErrArguments))
-    unitJS.assert.throws(() => safeFileName(1), new RegExp(ErrArguments))
-    unitJS.assert.throws(() => safeFileName('a', 9), new RegExp(ErrArguments))
-    unitJS.assert.throws(() => safeFileName('a', 1.5), new RegExp(ErrArguments))
-    unitJS.assert.throws(() => safeFileName('a', NaN), new RegExp(ErrArguments))
+    const invalidCalls = [[null], [1], ['a', 9], ['a', 1.5], ['a', NaN]]
+
+    for (const args of invalidCalls) {
+      unitJS
+        .error(() => {
+          safeFileName(...args)
+        })
+        .is(new Error(ErrArguments))
+    }
   })
 })
