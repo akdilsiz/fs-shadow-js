@@ -62,5 +62,8 @@
     "oxlint": "^1.85.0",
     "unit.js": "^2.1.1"
   },
+  "engines": {
+    "node": ">=20"
+  },
   "packageManager": "pnpm@11.21.0"
 }
