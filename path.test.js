@@ -352,3 +352,205 @@ describe('safeFileName Tests', () => {
     )
   })
 })
+
+describe('safeFileName Stress Tests', () => {
+  const encoder = new TextEncoder(),
+    decoder = new TextDecoder(),
+    reservedCharacters = '<>:"/\\|?*',
+    deviceNames = new Set(['CON', 'PRN', 'AUX', 'NUL']),
+    // Code units that hit every rule: ASCII, reserved and control characters,
+    // spaces and dots, Turkish, CJK, emoji with joiners and selectors,
+    // combining marks, astral letters, bidi marks and lone surrogates.
+    pool = [
+      'a',
+      'Z',
+      '0',
+      '9',
+      ' ',
+      '.',
+      '-',
+      '(',
+      ')',
+      '~',
+      ...reservedCharacters,
+      '\u0000',
+      '\u001f',
+      '\u007f',
+      '\u0085',
+      'ş',
+      'Ğ',
+      'ı',
+      'İ',
+      '文',
+      '件',
+      '😀',
+      '👍🏽',
+      '👨‍👩‍👧',
+      '🇹🇷',
+      '1️⃣',
+      '‍',
+      '️',
+      '́',
+      'ş',
+      '𝒜',
+      '‮',
+      '\uD800',
+      '\uDC00',
+      'CON',
+      'nul',
+      'COM¹'
+    ]
+
+  for (let digit = 1; digit <= 9; digit++) {
+    deviceNames.add('COM' + digit)
+    deviceNames.add('LPT' + digit)
+  }
+
+  for (const digit of ['¹', '²', '³']) {
+    deviceNames.add('COM' + digit)
+    deviceNames.add('LPT' + digit)
+  }
+
+  /**
+   * Mulberry32: a small seeded PRNG, so every failure is reproducible
+   * without adding a dependency.
+   * @param {number} seed
+   * @return {function(): number} returns values in [0, 1)
+   */
+  function createRandom(seed) {
+    let state = seed >>> 0
+
+    return function next() {
+      state = (state + 0x6d2b79f5) >>> 0
+
+      let value = Math.imul(state ^ (state >>> 15), 1 | state)
+
+      value ^= value + Math.imul(value ^ (value >>> 7), 61 | value)
+
+      return ((value ^ (value >>> 14)) >>> 0) / 4294967296
+    }
+  }
+
+  /**
+   * @param {function(): number} random
+   * @param {number} pieces
+   * @return {string} random name built from the pool
+   */
+  function randomName(random, pieces) {
+    let name = ''
+
+    for (let index = 0; index < pieces; index++) {
+      name += pool[Math.floor(random() * pool.length)]
+    }
+
+    return name
+  }
+
+  /**
+   * Returns the first broken rule for a result, or '' when all hold.
+   * @param {string} result
+   * @param {number} maxBytes
+   * @return {string}
+   */
+  function brokenRule(result, maxBytes) {
+    const bytes = encoder.encode(result),
+      firstDot = result.indexOf('.'),
+      device = (firstDot === -1 ? result : result.slice(0, firstDot))
+        .trimEnd()
+        .toUpperCase(),
+      lastCharacter = result[result.length - 1]
+
+    if (bytes.length > maxBytes) return 'too long'
+
+    // Lone surrogates would turn into U+FFFD, so the round trip differs.
+    if (decoder.decode(bytes) !== result) return 'not well-formed'
+
+    if (result === '' || result === '.' || result === '..') return 'empty'
+
+    if (lastCharacter === '.' || lastCharacter === ' ') return 'trailing'
+
+    if (deviceNames.has(device)) return 'device name'
+
+    for (const char of result) {
+      const codePoint = char.codePointAt(0),
+        control = codePoint <= 0x1f || (codePoint >= 0x7f && codePoint <= 0x9f)
+
+      if (control || reservedCharacters.includes(char)) return 'character'
+    }
+
+    return ''
+  }
+
+  it('keeps every rule for 3000 random names', () => {
+    const random = createRandom(20261020),
+      limits = [13, 32, 240, 255]
+
+    for (let round = 0; round < 3000; round++) {
+      const name = randomName(random, Math.floor(random() * 200)),
+        maxBytes = limits[round % limits.length],
+        result = safeFileName(name, maxBytes),
+        context = JSON.stringify({ round, name, maxBytes, result })
+
+      unitJS.assert.equal('', brokenRule(result, maxBytes), context)
+      unitJS.assert.equal(result, safeFileName(name, maxBytes), context)
+      unitJS.assert.equal(result, safeFileName(result, maxBytes), context)
+
+      // A name that already keeps every rule must come back unchanged.
+      if (brokenRule(name, maxBytes) === '') {
+        unitJS.assert.equal(name, result, context)
+      }
+    }
+  })
+
+  it('returns free names that keep every rule with existing names', () => {
+    const random = createRandom(7),
+      taken = new Set()
+
+    for (let round = 0; round < 1000; round++) {
+      // Few base names so collisions and counters happen often.
+      const name = randomName(random, 1 + Math.floor(random() * 3)),
+        result = safeFileName(name, 240, taken),
+        context = JSON.stringify({ round, name, result })
+
+      unitJS.assert.equal('', brokenRule(result, 240), context)
+      unitJS.assert.equal(false, taken.has(result), context)
+      taken.add(result)
+    }
+  })
+
+  // Each input targets a pattern that makes backtracking regular expressions
+  // explode (long runs, nested joiners, many combining marks). The .mocharc
+  // timeout (5 s) fails a test that turns super-linear.
+  const megabyte = 1 << 20,
+    hostileInputs = {
+      'spaces then a letter': ' '.repeat(megabyte) + 'x',
+      'dots and spaces then a letter': '. '.repeat(megabyte / 2) + 'x',
+      'double spaces between emoji': '😀  '.repeat(megabyte / 8),
+      'zero width joiners': '‍'.repeat(megabyte),
+      'variation selectors': 'a️'.repeat(megabyte / 2),
+      'combining marks': 'e' + '́'.repeat(megabyte),
+      'family emoji chain': '👨‍👩‍👧'.repeat(megabyte / 8),
+      'reserved characters': '<>:"/\\|?*'.repeat(megabyte / 9),
+      'lone surrogates': '\uD800'.repeat(megabyte),
+      'one dot per letter': 'a.'.repeat(megabyte / 2),
+      '10 MB ascii': 'b'.repeat(10 * megabyte) + '.txt'
+    }
+
+  for (const [label, input] of Object.entries(hostileInputs)) {
+    it('stays linear for ' + label, () => {
+      const result = safeFileName(input)
+
+      unitJS.assert.equal('', brokenRule(result, MaxFileNameBytes))
+    })
+  }
+
+  it('handles a folder with 100000 taken names', () => {
+    const taken = new Set(['x.txt'])
+
+    for (let counter = 1; counter <= 100000; counter++) {
+      taken.add('x (' + counter + ').txt')
+    }
+
+    unitJS.assert.equal('x (100001).txt', safeFileName('x.txt', 240, taken))
+  })
+})
