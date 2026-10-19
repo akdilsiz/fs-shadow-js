@@ -170,12 +170,13 @@ describe('safeFileName Tests', () => {
   it('throws ErrArguments for invalid arguments', () => {
     const invalidCalls = [[null], [1], ['a', 9], ['a', 1.5], ['a', NaN]]
 
+    // hasMessage checks the text; .is(new Error(...)) accepts any Error.
     for (const args of invalidCalls) {
       unitJS
-        .error(() => {
+        .exception(() => {
           safeFileName(...args)
         })
-        .is(new Error(ErrArguments))
+        .hasMessage(ErrArguments)
     }
   })
 })
