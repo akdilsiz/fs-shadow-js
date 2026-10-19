@@ -3,8 +3,10 @@ export declare const Separator: string
 export declare const MaxFileNameBytes: number
 
 /**
- * Fits a single file name into maxBytes UTF-8 bytes (default 240). Names that
- * already fit are returned unchanged; longer names are normalized to NFC with
+ * Fits a single file name into maxBytes UTF-8 bytes (default 240) and makes it
+ * valid on Windows, macOS and Linux (reserved/control characters, trailing
+ * dots and spaces, device names such as CON). Valid names that already fit
+ * are returned unchanged; longer names are normalized to NFC with
  * emoji removed and, if still too long, become
  * "{cut base}...~xxxxxxxx{extension}" with a deterministic hash.
  * With existingNames, a taken result gets " (1)", " (2)", ... before the
