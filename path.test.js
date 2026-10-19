@@ -123,12 +123,41 @@ describe('safeFileName Tests', () => {
     unitJS.assert.equal('ş'.repeat(114) + '...~a1010ac5', result)
     unitJS.assert.equal(240, byteLength(result))
 
-    const emojiResult = safeFileName('😀'.repeat(100) + '.png'),
-      emojiBytes = encoder.encode(emojiResult)
+    const mixed = safeFileName('çğ文'.repeat(40) + '.md'),
+      mixedBytes = encoder.encode(mixed)
 
-    unitJS.assert.equal(true, emojiBytes.length <= MaxFileNameBytes)
-    unitJS.assert.equal(emojiResult, decoder.decode(emojiBytes))
-    unitJS.assert.equal(true, emojiResult.endsWith('.png'))
+    unitJS.assert.equal(true, mixedBytes.length <= MaxFileNameBytes)
+    unitJS.assert.equal(mixed, decoder.decode(mixedBytes))
+    unitJS.assert.equal(true, mixed.endsWith('.md'))
+  })
+
+  it('removes emoji from long names only', () => {
+    const shortName = 'not 😀 👨‍👩‍👧.txt',
+      collapsed = safeFileName('rapor 😀 '.repeat(30) + '.pdf')
+
+    unitJS.assert.equal(shortName, safeFileName(shortName))
+    // Removal alone makes it fit: no cut, no hash, single spaces.
+    unitJS.assert.equal(Array(30).fill('rapor').join(' ') + '.pdf', collapsed)
+  })
+
+  it('returns the hash when nothing but emoji is left', () => {
+    unitJS.assert.equal(
+      '~433f52e0.png',
+      safeFileName('😀'.repeat(100) + '.png')
+    )
+    // "." would point at the current directory, so it counts as empty.
+    unitJS.assert.equal('~2b0c98f1', safeFileName('.' + '😀'.repeat(70)))
+  })
+
+  it('normalizes long names to NFC', () => {
+    const nfd = 's\u0327'.repeat(150),
+      nfc = 'ş'.repeat(150),
+      expected = 'ş'.repeat(114) + '...~a581fe05'
+
+    unitJS.assert.equal(expected, safeFileName(nfd))
+    unitJS.assert.equal(expected, safeFileName(nfc))
+    // Short names keep their exact bytes, NFD included.
+    unitJS.assert.equal('s\u0327', safeFileName('s\u0327'))
   })
 
   it('is deterministic and idempotent', () => {

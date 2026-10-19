@@ -4,7 +4,8 @@ export declare const MaxFileNameBytes: number
 
 /**
  * Fits a single file name into maxBytes UTF-8 bytes (default 240). Names that
- * already fit are returned unchanged; longer names become
+ * already fit are returned unchanged; longer names are normalized to NFC with
+ * emoji removed and, if still too long, become
  * "{cut base}...~xxxxxxxx{extension}" with a deterministic hash.
  * Throws ErrArguments for a non-string name or maxBytes < 13.
  */

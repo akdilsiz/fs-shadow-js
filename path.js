@@ -15,6 +15,13 @@ const ellipsis = '...',
   hashSuffixBytes = 9,
   // Smallest limit that still fits one base byte, the ellipsis and the hash.
   minFileNameBytes = 1 + ellipsis.length + hashSuffixBytes,
+  // Emoji code points plus the joiners, selectors, skin tones, flags and tags
+  // that build emoji sequences, so no orphan part is left behind. Note that
+  // Extended_Pictographic also covers a few symbols such as © and ™.
+  // Joiners, selectors and the keycap mark are combining characters, so they
+  // are alternatives instead of class members (no-misleading-character-class).
+  emojiPattern =
+    /[\p{Extended_Pictographic}\p{Emoji_Modifier}\p{Regional_Indicator}\u{E0020}-\u{E007F}]|\u200D|\uFE0E|\uFE0F|\u20E3/gu,
   encoder = new TextEncoder()
 
 /**
@@ -88,17 +95,34 @@ function splitExtension(name) {
 }
 
 /**
+ * Normalizes text to NFC (macOS writes NFD, Linux keeps what it gets, so the
+ * same visible name can have two byte forms), removes emoji and collapses the
+ * spaces the removal leaves behind.
+ * @param {string} value
+ * @return {string}
+ */
+function cleanText(value) {
+  return value
+    .normalize('NFC')
+    .replace(emojiPattern, '')
+    .replace(/ {2,}/g, ' ')
+    .trim()
+}
+
+/**
  * Makes a file name fit into maxBytes UTF-8 bytes so it can be written to
  * file systems with a per-name byte limit.
  *
  * Names that already fit are returned unchanged, so existing names, stored
- * transactions and trees keep working. Longer names become
+ * transactions and trees keep working. Longer names are first normalized to
+ * NFC with emoji removed; if that is enough they are returned cleaned, and a
+ * name left empty becomes "~xxxxxxxx{extension}". Otherwise they become
  * "{cut base}...~xxxxxxxx{extension}": the base is cut on a code point
- * boundary, "..." marks the cut and "~xxxxxxxx" is a deterministic hash of the
- * full name, so the same input always gives the same output and names sharing
- * a long prefix stay distinct (collisions are unlikely, not impossible). The
- * extension is kept whenever at least one base byte still fits. Calling it
- * again on its output is a no-op.
+ * boundary, "..." marks the cut and "~xxxxxxxx" is a deterministic hash of
+ * the full cleaned name, so the same input always gives the same output and
+ * names sharing a long prefix stay distinct (collisions are unlikely, not
+ * impossible). The extension is kept whenever at least one base byte still
+ * fits. Calling it again on its output is a no-op.
  *
  * @param {string} name single file name without separators
  * @param {number} [maxBytes=MaxFileNameBytes] UTF-8 byte limit, integer >= 13
@@ -114,18 +138,35 @@ export function safeFileName(name, maxBytes = MaxFileNameBytes) {
     throw new Error(ErrArguments)
   }
 
-  const nameBytes = encoder.encode(name)
+  if (encoder.encode(name).length <= maxBytes) return name
 
-  if (nameBytes.length <= maxBytes) return name
+  // Only names that must change anyway are cleaned, so short names keep their
+  // exact bytes (backward compatible with existing trees).
+  const parts = splitExtension(name),
+    stem = cleanText(parts.stem),
+    cleanExtension = cleanText(parts.extension),
+    cleaned = stem + cleanExtension,
+    // Hashing the cleaned name gives NFC and NFD input the same result.
+    hash = '~' + fnv1aHex(encoder.encode(cleaned)),
+    cleanedBytes = encoder.encode(cleaned).length,
+    extensionBytes = encoder.encode(cleanExtension).length,
+    // "." and ".." would point at directories, so they count as empty.
+    emptyStem = stem === '' || stem === '.' || stem === '..'
 
-  const marker = ellipsis + '~' + fnv1aHex(nameBytes),
-    parts = splitExtension(name),
-    extensionBytes = encoder.encode(parts.extension).length,
+  if (emptyStem) {
+    const extensionFits = hash.length + extensionBytes <= maxBytes
+
+    return extensionFits ? hash + cleanExtension : hash
+  }
+
+  if (cleanedBytes <= maxBytes) return cleaned
+
+  const marker = ellipsis + hash,
     // Without one byte left for the base the extension is not really an
     // extension (for example a dot in a long title), so cut the whole name.
     keepExtension = extensionBytes + marker.length < maxBytes,
-    base = keepExtension ? parts.stem : name,
-    extension = keepExtension ? parts.extension : '',
+    base = keepExtension ? stem : cleaned,
+    extension = keepExtension ? cleanExtension : '',
     baseBudget = maxBytes - marker.length - (keepExtension ? extensionBytes : 0)
 
   return truncateUtf8(base, baseBudget) + marker + extension
