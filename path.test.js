@@ -207,7 +207,7 @@ describe('safeFileName Tests', () => {
   it('replaces characters that Windows or POSIX reject', () => {
     unitJS.assert.equal(
       'a_b_c_d_e_f_g_h_i_.txt',
-      safeFileName('a<b>c:d"e/f\\g|h?i*.txt')
+      safeFileName('a>b<c:d"e/f\\g|h?i*.txt')
     )
     unitJS.assert.equal('ab', safeFileName('a\u0000\u0007\u001f\u007f\u009fb'))
     unitJS.assert.equal('_x', safeFileName('\uD800x'))
@@ -396,7 +396,9 @@ describe('safeFileName Stress Tests', () => {
       '́',
       'ş',
       '𝒜',
-      '‮',
+      // U+202E (right-to-left override), built at runtime so the source has no
+      // bidi control character.
+      String.fromCodePoint(0x202e),
       '\uD800',
       '\uDC00',
       'CON',
