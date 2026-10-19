@@ -1,6 +1,12 @@
 import unitJS from 'unit.js'
 import { ErrArguments } from './errors.js'
-import { Separator, Path, FileInfo } from './path.js'
+import {
+  Separator,
+  Path,
+  FileInfo,
+  MaxFileNameBytes,
+  safeFileName
+} from './path.js'
 
 describe('Seperator', () => {
   it('valid', () => {
@@ -72,5 +78,100 @@ describe('FileInfo Tests', () => {
 
     unitJS.value(error).is(new Error(ErrArguments))
     unitJS.value(fileInfo).isNull()
+  })
+})
+
+describe('safeFileName Tests', () => {
+  // fatal: true makes decode throw on invalid UTF-8, so a split character
+  // fails the test instead of turning into U+FFFD.
+  const encoder = new TextEncoder(),
+    decoder = new TextDecoder('utf-8', { fatal: true })
+
+  /**
+   * @param {string} value
+   * @return {number} UTF-8 byte length of value
+   */
+  function byteLength(value) {
+    return encoder.encode(value).length
+  }
+
+  it('default limit is 240 bytes', () => {
+    unitJS.assert.equal(240, MaxFileNameBytes)
+  })
+
+  it('returns names that already fit unchanged', () => {
+    const exact = 'a'.repeat(236) + '.txt'
+
+    unitJS.assert.equal('file.txt', safeFileName('file.txt'))
+    unitJS.assert.equal('şğü 文件 😀.md', safeFileName('şğü 文件 😀.md'))
+    unitJS.assert.equal(exact, safeFileName(exact))
+    unitJS.assert.equal('', safeFileName(''))
+  })
+
+  // Expected hashes come from an independent FNV-1a 32-bit implementation.
+  it('cuts long ascii names and keeps the extension', () => {
+    const name = 'a'.repeat(300) + '.txt',
+      result = safeFileName(name)
+
+    unitJS.assert.equal('a'.repeat(227) + '~96b24767.txt', result)
+    unitJS.assert.equal(240, byteLength(result))
+  })
+
+  it('never splits multi-byte characters', () => {
+    const result = safeFileName('ş'.repeat(200))
+
+    unitJS.assert.equal('ş'.repeat(115) + '~a1010ac5', result)
+    unitJS.assert.equal(239, byteLength(result))
+
+    const emojiResult = safeFileName('😀'.repeat(100) + '.png'),
+      emojiBytes = encoder.encode(emojiResult)
+
+    unitJS.assert.equal(true, emojiBytes.length <= MaxFileNameBytes)
+    unitJS.assert.equal(emojiResult, decoder.decode(emojiBytes))
+    unitJS.assert.equal(true, emojiResult.endsWith('.png'))
+  })
+
+  it('is deterministic and idempotent', () => {
+    const name = 'b'.repeat(400) + '.pdf',
+      first = safeFileName(name)
+
+    unitJS.assert.equal(first, safeFileName(name))
+    unitJS.assert.equal(first, safeFileName(first))
+  })
+
+  it('keeps names with the same long prefix distinct', () => {
+    const prefix = 'c'.repeat(300),
+      first = safeFileName(prefix + '1.txt'),
+      second = safeFileName(prefix + '2.txt')
+
+    unitJS.assert.notEqual(first, second)
+  })
+
+  it('drops extensions that are too long or leave no room', () => {
+    const longExtension = safeFileName('d'.repeat(250) + '.' + 'e'.repeat(40)),
+      hidden = safeFileName('.' + 'f'.repeat(300)),
+      tight = safeFileName('g'.repeat(20) + '.txt', 12)
+
+    unitJS.assert.equal(true, byteLength(longExtension) <= MaxFileNameBytes)
+    unitJS.assert.equal(true, longExtension.startsWith('d'.repeat(231)))
+    unitJS.assert.equal(true, hidden.startsWith('.f'))
+    unitJS.assert.equal(MaxFileNameBytes, byteLength(hidden))
+    unitJS.assert.equal(12, byteLength(tight))
+    unitJS.assert.equal(true, tight.startsWith('ggg~'))
+  })
+
+  it('supports a custom limit', () => {
+    const result = safeFileName('h'.repeat(100) + '.txt', 50)
+
+    unitJS.assert.equal(50, byteLength(result))
+    unitJS.assert.equal(true, result.endsWith('.txt'))
+  })
+
+  it('throws ErrArguments for invalid arguments', () => {
+    unitJS.assert.throws(() => safeFileName(null), new RegExp(ErrArguments))
+    unitJS.assert.throws(() => safeFileName(1), new RegExp(ErrArguments))
+    unitJS.assert.throws(() => safeFileName('a', 9), new RegExp(ErrArguments))
+    unitJS.assert.throws(() => safeFileName('a', 1.5), new RegExp(ErrArguments))
+    unitJS.assert.throws(() => safeFileName('a', NaN), new RegExp(ErrArguments))
   })
 })
