@@ -309,10 +309,11 @@ describe('safeFileName Tests', () => {
     const name = 'z'.repeat(20)
 
     // "...~xxxxxxxx (1)" alone is 16 bytes, more than the 13-byte limit.
-    unitJS.assert.throws(
-      () => safeFileName(name, 13, [safeFileName(name, 13)]),
-      new RegExp(ErrFileExists)
-    )
+    unitJS
+      .exception(() => {
+        safeFileName(name, 13, [safeFileName(name, 13)])
+      })
+      .hasMessage(ErrFileExists)
   })
 
   // Regression: each counter used to clean and hash the whole name again,
@@ -333,23 +334,25 @@ describe('safeFileName Tests', () => {
   })
 
   it('throws ErrArguments for invalid arguments', () => {
-    unitJS.assert.throws(() => safeFileName(null), new RegExp(ErrArguments))
-    unitJS.assert.throws(() => safeFileName(1), new RegExp(ErrArguments))
-    unitJS.assert.throws(() => safeFileName('a', 12), new RegExp(ErrArguments))
-    unitJS.assert.throws(() => safeFileName('a', 1.5), new RegExp(ErrArguments))
-    unitJS.assert.throws(() => safeFileName('a', NaN), new RegExp(ErrArguments))
-    unitJS.assert.throws(
-      () => safeFileName('a', 240, 'a'),
-      new RegExp(ErrArguments)
-    )
-    unitJS.assert.throws(
-      () => safeFileName('a', 240, null),
-      new RegExp(ErrArguments)
-    )
-    unitJS.assert.throws(
-      () => safeFileName('a', 240, 1),
-      new RegExp(ErrArguments)
-    )
+    const invalidCalls = [
+      [null],
+      [1],
+      ['a', 12],
+      ['a', 1.5],
+      ['a', NaN],
+      ['a', 240, 'a'],
+      ['a', 240, null],
+      ['a', 240, 1]
+    ]
+
+    // hasMessage checks the text; .is(new Error(...)) accepts any Error.
+    for (const args of invalidCalls) {
+      unitJS
+        .exception(() => {
+          safeFileName(...args)
+        })
+        .hasMessage(ErrArguments)
+    }
   })
 })
 

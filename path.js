@@ -92,7 +92,9 @@ function truncateUtf8(value, maxBytes) {
  * @return {string}
  */
 function fnv1aHex(bytes) {
-  let hash = 0x811c9dc5
+  // FNV-1a 32-bit offset basis 0x811c9dc5, written in decimal because some
+  // static analyzers misread hex literals above 2^31 (it is a safe integer).
+  let hash = 2166136261
 
   // Indexed loop: iterating a Uint8Array with for...of is ~3x slower here.
   for (let index = 0; index < bytes.length; index++) {
