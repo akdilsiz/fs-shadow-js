@@ -22,7 +22,29 @@ const ellipsis = '...',
   // are alternatives instead of class members (no-misleading-character-class).
   emojiPattern =
     /[\p{Extended_Pictographic}\p{Emoji_Modifier}\p{Regional_Indicator}\u{E0020}-\u{E007F}]|\u200D|\uFE0E|\uFE0F|\u20E3/gu,
-  encoder = new TextEncoder()
+  encoder = new TextEncoder(),
+  // Characters Windows rejects in a name ("Naming Files, Paths, and
+  // Namespaces", Microsoft Learn); "/" is also the POSIX separator. Each one
+  // becomes "_", so names stay readable and keep their length. All are ASCII,
+  // so a 128-entry table keeps the per-character check allocation free.
+  reservedCharacterCodes = new Uint8Array(128),
+  replacement = '_',
+  // Device names Windows reserves in every folder, also with an extension
+  // ("NUL.txt"); the superscript digits count as digits there.
+  reservedDeviceNames = new Set(
+    ['CON', 'PRN', 'AUX', 'NUL'].concat(
+      ['1', '2', '3', '4', '5', '6', '7', '8', '9', '¹', '²', '³'].map(
+        function deviceNumber(digit) {
+          return 'COM' + digit
+        }
+      ),
+      ['1', '2', '3', '4', '5', '6', '7', '8', '9', '¹', '²', '³'].map(
+        function printerNumber(digit) {
+          return 'LPT' + digit
+        }
+      )
+    )
+  )
 
 /**
  * Returns the UTF-8 byte length of one code point without allocating.
@@ -72,8 +94,9 @@ function truncateUtf8(value, maxBytes) {
 function fnv1aHex(bytes) {
   let hash = 0x811c9dc5
 
-  for (const byte of bytes) {
-    hash ^= byte
+  // Indexed loop: iterating a Uint8Array with for...of is ~3x slower here.
+  for (let index = 0; index < bytes.length; index++) {
+    hash ^= bytes[index]
     hash = Math.imul(hash, 0x01000193)
   }
 
@@ -109,10 +132,86 @@ function cleanText(value) {
     .trim()
 }
 
+for (const char of '<>:"/\\|?*') {
+  reservedCharacterCodes[char.charCodeAt(0)] = 1
+}
+
+/**
+ * Applies the rules every common OS file system shares, so a name valid on
+ * Linux also works on Windows and macOS:
+ * - control characters (U+0000-U+001F, U+007F-U+009F) are removed,
+ * - reserved characters and lone surrogates (no valid UTF-8) become "_",
+ * - trailing spaces and dots are removed (Windows drops them silently, which
+ *   would merge "a." and "a"),
+ * - an empty result, "." and ".." become "_",
+ * - a reserved device name gets "_" before its first dot ("CON_.txt").
+ * A valid name is returned unchanged. Uses loops instead of regular
+ * expressions: a pattern such as /[. ]+$/ backtracks quadratically on long
+ * runs of spaces.
+ * @param {string} name
+ * @return {string}
+ */
+function portableName(name) {
+  // Copies clean runs as slices and only touches offending code units, so a
+  // valid long name costs one pass without per-character concatenation.
+  let result = '',
+    runStart = 0
+
+  for (let index = 0; index < name.length; index++) {
+    const unit = name.charCodeAt(index),
+      highSurrogate = unit >= 0xd800 && unit <= 0xdbff,
+      lowSurrogate = unit >= 0xdc00 && unit <= 0xdfff,
+      nextUnit = name.charCodeAt(index + 1),
+      validPair = highSurrogate && nextUnit >= 0xdc00 && nextUnit <= 0xdfff
+
+    if (validPair) {
+      index++
+      continue
+    }
+
+    const control = unit <= 0x1f || (unit >= 0x7f && unit <= 0x9f),
+      loneSurrogate = highSurrogate || lowSurrogate,
+      reserved = unit < 0x80 && reservedCharacterCodes[unit] === 1
+
+    if (!control && !loneSurrogate && !reserved) continue
+
+    result += name.slice(runStart, index) + (control ? '' : replacement)
+    runStart = index + 1
+  }
+
+  result += name.slice(runStart)
+
+  let end = result.length
+
+  while (end > 0 && (result[end - 1] === ' ' || result[end - 1] === '.')) {
+    end--
+  }
+
+  result = result.slice(0, end)
+
+  if (result === '') return replacement
+
+  // Windows checks the part before the first dot, ignoring trailing spaces.
+  const firstDot = result.indexOf('.'),
+    deviceEnd = firstDot === -1 ? result.length : firstDot,
+    device = result.slice(0, deviceEnd).trimEnd(),
+    // Device names have at most 4 characters, so longer parts skip the
+    // uppercase copy of what can be a very long name.
+    reservedDevice =
+      device.length <= 4 && reservedDeviceNames.has(device.toUpperCase())
+
+  if (reservedDevice) {
+    return result.slice(0, deviceEnd) + replacement + result.slice(deviceEnd)
+  }
+
+  return result
+}
+
 /**
  * @typedef {Object} PreparedName
- * @property {number} bytes UTF-8 byte length of the name as given
- * @property {{stem: string, extension: string}} parts name split at the dot
+ * @property {number} bytes UTF-8 byte length of the portable name
+ * @property {{stem: string, extension: string}} parts portable name split at
+ *   the dot
  * @property {string} stem cleaned stem (NFC, no emoji)
  * @property {string} extension cleaned extension
  * @property {number} cleanedBytes UTF-8 byte length of stem + extension
@@ -129,22 +228,51 @@ function cleanText(value) {
  * @return {PreparedName}
  */
 function prepareName(name) {
-  const parts = splitExtension(name),
-    stem = cleanText(parts.stem),
-    extension = cleanText(parts.extension),
-    cleaned = stem + extension
+  const portable = portableName(name),
+    portableBytes = encoder.encode(portable),
+    parts = splitExtension(portable),
+    cleanStem = cleanText(parts.stem),
+    cleanExtension = cleanText(parts.extension),
+    // "." and ".." would point at directories, so they count as empty.
+    emptyStem = cleanStem === '' || cleanStem === '.' || cleanStem === '..',
+    cleanedUnchanged =
+      cleanStem === parts.stem && cleanExtension === parts.extension
+
+  if (emptyStem) {
+    // Hashing an empty stem would give every emoji-only name the same hash,
+    // so the NFC form of the portable name is hashed instead.
+    const hashInput = encoder.encode(portable.normalize('NFC'))
+
+    return {
+      bytes: portableBytes.length,
+      parts,
+      stem: '',
+      extension: cleanExtension,
+      cleanedBytes: encoder.encode(cleanExtension).length,
+      extensionBytes: encoder.encode(cleanExtension).length,
+      hash: '~' + fnv1aHex(hashInput),
+      emptyStem
+    }
+  }
+
+  // Cleaning can expose a trailing dot or a device name ("CON😀" -> "CON"),
+  // so the OS rules run again; most names are unchanged and skip that pass.
+  const cleaned = cleanedUnchanged
+      ? portable
+      : portableName(cleanStem + cleanExtension),
+    cleanedBytes = cleanedUnchanged ? portableBytes : encoder.encode(cleaned),
+    cleanedParts = splitExtension(cleaned)
 
   return {
-    bytes: encoder.encode(name).length,
+    bytes: portableBytes.length,
     parts,
-    stem,
-    extension,
-    cleanedBytes: encoder.encode(cleaned).length,
-    extensionBytes: encoder.encode(extension).length,
+    stem: cleanedParts.stem,
+    extension: cleanedParts.extension,
+    cleanedBytes: cleanedBytes.length,
+    extensionBytes: encoder.encode(cleanedParts.extension).length,
     // Hashing the cleaned name gives NFC and NFD input the same result.
-    hash: '~' + fnv1aHex(encoder.encode(cleaned)),
-    // "." and ".." would point at directories, so they count as empty.
-    emptyStem: stem === '' || stem === '.' || stem === '..'
+    hash: '~' + fnv1aHex(cleanedBytes),
+    emptyStem
   }
 }
 
@@ -163,8 +291,8 @@ function prepareName(name) {
 function fitFileName(prepared, maxBytes, label = '') {
   const { parts, stem, extension, extensionBytes, hash } = prepared
 
-  // Names that fit are kept byte for byte (backward compatible with existing
-  // trees); with an empty label this returns the name itself.
+  // Portable names that fit are kept byte for byte (backward compatible with
+  // existing trees); with an empty label this returns the portable name.
   if (prepared.bytes + label.length <= maxBytes) {
     return parts.stem + label + parts.extension
   }
@@ -196,8 +324,11 @@ function fitFileName(prepared, maxBytes, label = '') {
  * Makes a file name fit into maxBytes UTF-8 bytes so it can be written to
  * file systems with a per-name byte limit.
  *
- * Names that already fit are returned unchanged, so existing names, stored
- * transactions and trees keep working. Longer names are first normalized to
+ * First the OS rules shared by Windows, macOS and Linux are applied (see
+ * portableName: reserved and control characters, trailing dots and spaces,
+ * device names such as CON). Valid names that already fit are returned
+ * unchanged, so existing names, stored transactions and trees keep working.
+ * Longer names are then normalized to
  * NFC with emoji removed; if that is enough they are returned cleaned, and a
  * name left empty becomes "~xxxxxxxx{extension}". Otherwise they become
  * "{cut base}...~xxxxxxxx{extension}": the base is cut on a code point

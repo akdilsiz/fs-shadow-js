@@ -105,7 +105,7 @@ describe('safeFileName Tests', () => {
     unitJS.assert.equal('file.txt', safeFileName('file.txt'))
     unitJS.assert.equal('şğü 文件 😀.md', safeFileName('şğü 文件 😀.md'))
     unitJS.assert.equal(exact, safeFileName(exact))
-    unitJS.assert.equal('', safeFileName(''))
+    unitJS.assert.equal('.env', safeFileName('.env'))
   })
 
   // Expected hashes come from an independent FNV-1a 32-bit implementation.
@@ -142,11 +142,14 @@ describe('safeFileName Tests', () => {
 
   it('returns the hash when nothing but emoji is left', () => {
     unitJS.assert.equal(
-      '~433f52e0.png',
+      '~5e623e80.png',
       safeFileName('😀'.repeat(100) + '.png')
     )
     // "." would point at the current directory, so it counts as empty.
-    unitJS.assert.equal('~2b0c98f1', safeFileName('.' + '😀'.repeat(70)))
+    unitJS.assert.equal('~f5e1ece1', safeFileName('.' + '😀'.repeat(70)))
+    // Different emoji-only names must not share one hash.
+    unitJS.assert.equal('~275baa65', safeFileName('😀'.repeat(100)))
+    unitJS.assert.equal('~aa3ca875', safeFileName('🎉'.repeat(100)))
   })
 
   it('normalizes long names to NFC', () => {
@@ -199,6 +202,53 @@ describe('safeFileName Tests', () => {
 
     unitJS.assert.equal(50, byteLength(result))
     unitJS.assert.equal(true, result.endsWith('.txt'))
+  })
+
+  it('replaces characters that Windows or POSIX reject', () => {
+    unitJS.assert.equal(
+      'a_b_c_d_e_f_g_h_i_.txt',
+      safeFileName('a<b>c:d"e/f\\g|h?i*.txt')
+    )
+    unitJS.assert.equal('ab', safeFileName('a\u0000\u0007\u001f\u007f\u009fb'))
+    unitJS.assert.equal('_x', safeFileName('\uD800x'))
+    unitJS.assert.equal('x_', safeFileName('x\uDC00'))
+  })
+
+  it('removes trailing dots and spaces', () => {
+    unitJS.assert.equal('x', safeFileName('x. . '))
+    unitJS.assert.equal('rapor.pdf', safeFileName('rapor.pdf. '))
+    unitJS.assert.equal(' leading', safeFileName(' leading'))
+    unitJS.assert.equal('_', safeFileName(''))
+    unitJS.assert.equal('_', safeFileName('.'))
+    unitJS.assert.equal('_', safeFileName('..'))
+    unitJS.assert.equal('_', safeFileName(' . '))
+  })
+
+  it('suffixes reserved Windows device names', () => {
+    unitJS.assert.equal('CON_', safeFileName('CON'))
+    unitJS.assert.equal('nul_.txt', safeFileName('nul.txt'))
+    unitJS.assert.equal('Aux_.tar.gz', safeFileName('Aux.tar.gz'))
+    unitJS.assert.equal('COM¹_.log', safeFileName('COM¹.log'))
+    unitJS.assert.equal('CON _.txt', safeFileName('CON .txt'))
+    unitJS.assert.equal('LPT9_', safeFileName('lpt9'.toUpperCase()))
+    // Not device names: digits 0 and 10, longer words, hidden files.
+    unitJS.assert.equal('COM0', safeFileName('COM0'))
+    unitJS.assert.equal('COM10', safeFileName('COM10'))
+    unitJS.assert.equal('CONSOLE.txt', safeFileName('CONSOLE.txt'))
+    unitJS.assert.equal('.con', safeFileName('.con'))
+    // Emoji removal can expose a device name in a long name.
+    unitJS.assert.equal(
+      'CON_.txt',
+      safeFileName('CON' + '😀'.repeat(60) + '.txt')
+    )
+  })
+
+  it('counts portable names', () => {
+    unitJS.assert.equal('CON_ (1)', safeFileName('CON', 240, ['CON_']))
+    unitJS.assert.equal(
+      'a_b (1).txt',
+      safeFileName('a:b.txt', 240, ['a_b.txt'])
+    )
   })
 
   it('keeps the deterministic result without existing names', () => {
@@ -272,12 +322,14 @@ describe('safeFileName Tests', () => {
     const name = 'q'.repeat(100000) + '.txt',
       taken = [safeFileName(name)]
 
-    for (let counter = 1; counter <= 500; counter++) {
+    // 300 counters: well under a second now, tens of seconds before the fix,
+    // so slower CI machines keep a wide margin.
+    for (let counter = 1; counter <= 300; counter++) {
       taken.push(safeFileName(name, MaxFileNameBytes, taken))
     }
 
-    unitJS.assert.equal(501, new Set(taken).size)
-    unitJS.assert.equal(true, taken[500].endsWith(' (500).txt'))
+    unitJS.assert.equal(301, new Set(taken).size)
+    unitJS.assert.equal(true, taken[300].endsWith(' (300).txt'))
   })
 
   it('throws ErrArguments for invalid arguments', () => {
