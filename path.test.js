@@ -265,6 +265,21 @@ describe('safeFileName Tests', () => {
     )
   })
 
+  // Regression: each counter used to clean and hash the whole name again,
+  // so this loop was O(counters^2 * name length) and ran into minutes. The
+  // .mocharc timeout (5 s) fails the test if that comes back.
+  it('keeps the collision guard linear for long names', () => {
+    const name = 'q'.repeat(100000) + '.txt',
+      taken = [safeFileName(name)]
+
+    for (let counter = 1; counter <= 500; counter++) {
+      taken.push(safeFileName(name, MaxFileNameBytes, taken))
+    }
+
+    unitJS.assert.equal(501, new Set(taken).size)
+    unitJS.assert.equal(true, taken[500].endsWith(' (500).txt'))
+  })
+
   it('throws ErrArguments for invalid arguments', () => {
     unitJS.assert.throws(() => safeFileName(null), new RegExp(ErrArguments))
     unitJS.assert.throws(() => safeFileName(1), new RegExp(ErrArguments))

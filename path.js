@@ -110,55 +110,86 @@ function cleanText(value) {
 }
 
 /**
- * Fits a validated name into maxBytes without looking at other names. See
+ * @typedef {Object} PreparedName
+ * @property {number} bytes UTF-8 byte length of the name as given
+ * @property {{stem: string, extension: string}} parts name split at the dot
+ * @property {string} stem cleaned stem (NFC, no emoji)
+ * @property {string} extension cleaned extension
+ * @property {number} cleanedBytes UTF-8 byte length of stem + extension
+ * @property {number} extensionBytes UTF-8 byte length of extension
+ * @property {string} hash "~xxxxxxxx" of the cleaned name
+ * @property {boolean} emptyStem cleaning left no usable stem
+ */
+
+/**
+ * Does the work that depends only on the name: splitting, cleaning and
+ * hashing. It runs once per safeFileName call, so the collision guard does
+ * not repeat linear work on a long name for every counter.
+ * @param {string} name
+ * @return {PreparedName}
+ */
+function prepareName(name) {
+  const parts = splitExtension(name),
+    stem = cleanText(parts.stem),
+    extension = cleanText(parts.extension),
+    cleaned = stem + extension
+
+  return {
+    bytes: encoder.encode(name).length,
+    parts,
+    stem,
+    extension,
+    cleanedBytes: encoder.encode(cleaned).length,
+    extensionBytes: encoder.encode(extension).length,
+    // Hashing the cleaned name gives NFC and NFD input the same result.
+    hash: '~' + fnv1aHex(encoder.encode(cleaned)),
+    // "." and ".." would point at directories, so they count as empty.
+    emptyStem: stem === '' || stem === '.' || stem === '..'
+  }
+}
+
+/**
+ * Fits a prepared name into maxBytes without looking at other names. See
  * safeFileName for the rules. The label (" (1)", ...) is reserved inside the
  * limit and placed before the extension, so a counter never cuts into the
  * "...~hash" marker; with an empty label this is the deterministic result.
- * @param {string} name
+ * Costs O(maxBytes): the cut stops as soon as the budget is used.
+ * @param {PreparedName} prepared
  * @param {number} maxBytes
  * @param {string} [label=''] ASCII text added before the extension
  * @return {string} may exceed maxBytes only when the label alone leaves no
  *   room; the caller checks that
  */
-function fitFileName(name, maxBytes, label = '') {
-  const parts = splitExtension(name)
+function fitFileName(prepared, maxBytes, label = '') {
+  const { parts, stem, extension, extensionBytes, hash } = prepared
 
   // Names that fit are kept byte for byte (backward compatible with existing
-  // trees); with an empty label this returns name itself.
-  if (encoder.encode(name).length + label.length <= maxBytes) {
+  // trees); with an empty label this returns the name itself.
+  if (prepared.bytes + label.length <= maxBytes) {
     return parts.stem + label + parts.extension
   }
 
   // Only names that must change anyway are cleaned.
-  const stem = cleanText(parts.stem),
-    cleanExtension = cleanText(parts.extension),
-    cleaned = stem + cleanExtension,
-    // Hashing the cleaned name gives NFC and NFD input the same result.
-    hash = '~' + fnv1aHex(encoder.encode(cleaned)),
-    extensionBytes = encoder.encode(cleanExtension).length,
-    // "." and ".." would point at directories, so they count as empty.
-    emptyStem = stem === '' || stem === '.' || stem === '..'
-
-  if (emptyStem) {
+  if (prepared.emptyStem) {
     const extensionFits =
       hash.length + label.length + extensionBytes <= maxBytes
 
-    return hash + label + (extensionFits ? cleanExtension : '')
+    return hash + label + (extensionFits ? extension : '')
   }
 
-  if (encoder.encode(cleaned).length + label.length <= maxBytes) {
-    return stem + label + cleanExtension
+  if (prepared.cleanedBytes + label.length <= maxBytes) {
+    return stem + label + extension
   }
 
   const marker = ellipsis + hash + label,
     // Without one byte left for the base the extension is not really an
     // extension (for example a dot in a long title), so cut the whole name.
     keepExtension = extensionBytes + marker.length < maxBytes,
-    base = keepExtension ? stem : cleaned,
-    extension = keepExtension ? cleanExtension : '',
+    base = keepExtension ? stem : stem + extension,
+    kept = keepExtension ? extension : '',
     baseBudget = maxBytes - marker.length - (keepExtension ? extensionBytes : 0)
 
-  return truncateUtf8(base, baseBudget) + marker + extension
+  return truncateUtf8(base, baseBudget) + marker + kept
 }
 
 /**
@@ -210,7 +241,8 @@ export function safeFileName(
     throw new Error(ErrArguments)
   }
 
-  const candidate = fitFileName(name, maxBytes)
+  const prepared = prepareName(name),
+    candidate = fitFileName(prepared, maxBytes)
 
   if (!hasExistingNames) return candidate
 
@@ -223,7 +255,7 @@ export function safeFileName(
   // and ")" differ), so taken.size + 1 tries reach a free one unless the
   // limit is too small for the counter. The bound keeps the loop finite.
   for (let counter = 1; counter <= taken.size + 1; counter++) {
-    const numbered = fitFileName(name, maxBytes, ' (' + counter + ')'),
+    const numbered = fitFileName(prepared, maxBytes, ' (' + counter + ')'),
       fits = encoder.encode(numbered).length <= maxBytes
 
     if (fits && !taken.has(numbered)) return numbered
