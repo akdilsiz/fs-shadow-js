@@ -1,5 +1,5 @@
 import unitJS from 'unit.js'
-import { ErrArguments } from './errors.js'
+import { ErrArguments, ErrFileExists } from './errors.js'
 import {
   Separator,
   Path,
@@ -201,11 +201,87 @@ describe('safeFileName Tests', () => {
     unitJS.assert.equal(true, result.endsWith('.txt'))
   })
 
+  it('keeps the deterministic result without existing names', () => {
+    unitJS.assert.equal('a.txt', safeFileName('a.txt', undefined, undefined))
+    unitJS.assert.equal('a.txt', safeFileName('a.txt', undefined, []))
+    unitJS.assert.equal('a.txt', safeFileName('a.txt', undefined, ['b.txt']))
+  })
+
+  it('adds a counter before the extension when the name is taken', () => {
+    const taken = new Set(['rapor.pdf', 'rapor (1).pdf'])
+
+    unitJS.assert.equal(
+      'rapor (1).pdf',
+      safeFileName('rapor.pdf', 240, ['rapor.pdf'])
+    )
+    unitJS.assert.equal('rapor (2).pdf', safeFileName('rapor.pdf', 240, taken))
+    unitJS.assert.equal('.env (1)', safeFileName('.env', 240, ['.env']))
+    unitJS.assert.equal('README (1)', safeFileName('README', 240, ['README']))
+  })
+
+  it('keeps counted long names within the limit', () => {
+    const name = 'a'.repeat(300) + '.txt',
+      first = safeFileName(name),
+      second = safeFileName(name, MaxFileNameBytes, [first])
+
+    // The counter is reserved before the cut, so the hash stays whole.
+    unitJS.assert.equal('a'.repeat(220) + '...~96b24767 (1).txt', second)
+    unitJS.assert.equal(MaxFileNameBytes, byteLength(second))
+  })
+
+  it('always finds a free name for a crowded folder', () => {
+    const taken = ['x.txt']
+
+    for (let counter = 1; counter <= 50; counter++) {
+      taken.push('x (' + counter + ').txt')
+    }
+
+    unitJS.assert.equal('x (51).txt', safeFileName('x.txt', 240, taken))
+
+    const tightName = 'y'.repeat(30),
+      tight = safeFileName(tightName, 20, [safeFileName(tightName, 20)])
+
+    unitJS.assert.equal(20, byteLength(tight))
+    unitJS.assert.equal(true, tight.startsWith('yyyy...~'))
+    unitJS.assert.equal(true, tight.endsWith(' (1)'))
+  })
+
+  it('counts short names that only overflow with the counter', () => {
+    const name = 'k'.repeat(236) + '.txt',
+      result = safeFileName(name, 240, [name])
+
+    unitJS.assert.equal(true, byteLength(result) <= MaxFileNameBytes)
+    unitJS.assert.equal(true, result.endsWith(' (1).txt'))
+    unitJS.assert.equal(true, result.includes('...~'))
+  })
+
+  it('throws ErrFileExists when the limit has no room for a counter', () => {
+    const name = 'z'.repeat(20)
+
+    // "...~xxxxxxxx (1)" alone is 16 bytes, more than the 13-byte limit.
+    unitJS.assert.throws(
+      () => safeFileName(name, 13, [safeFileName(name, 13)]),
+      new RegExp(ErrFileExists)
+    )
+  })
+
   it('throws ErrArguments for invalid arguments', () => {
     unitJS.assert.throws(() => safeFileName(null), new RegExp(ErrArguments))
     unitJS.assert.throws(() => safeFileName(1), new RegExp(ErrArguments))
     unitJS.assert.throws(() => safeFileName('a', 12), new RegExp(ErrArguments))
     unitJS.assert.throws(() => safeFileName('a', 1.5), new RegExp(ErrArguments))
     unitJS.assert.throws(() => safeFileName('a', NaN), new RegExp(ErrArguments))
+    unitJS.assert.throws(
+      () => safeFileName('a', 240, 'a'),
+      new RegExp(ErrArguments)
+    )
+    unitJS.assert.throws(
+      () => safeFileName('a', 240, null),
+      new RegExp(ErrArguments)
+    )
+    unitJS.assert.throws(
+      () => safeFileName('a', 240, 1),
+      new RegExp(ErrArguments)
+    )
   })
 })

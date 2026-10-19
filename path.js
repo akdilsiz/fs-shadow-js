@@ -1,4 +1,4 @@
-import { ErrArguments } from './errors.js'
+import { ErrArguments, ErrFileExists } from './errors.js'
 export const Separator = '/'
 
 /**
@@ -110,6 +110,58 @@ function cleanText(value) {
 }
 
 /**
+ * Fits a validated name into maxBytes without looking at other names. See
+ * safeFileName for the rules. The label (" (1)", ...) is reserved inside the
+ * limit and placed before the extension, so a counter never cuts into the
+ * "...~hash" marker; with an empty label this is the deterministic result.
+ * @param {string} name
+ * @param {number} maxBytes
+ * @param {string} [label=''] ASCII text added before the extension
+ * @return {string} may exceed maxBytes only when the label alone leaves no
+ *   room; the caller checks that
+ */
+function fitFileName(name, maxBytes, label = '') {
+  const parts = splitExtension(name)
+
+  // Names that fit are kept byte for byte (backward compatible with existing
+  // trees); with an empty label this returns name itself.
+  if (encoder.encode(name).length + label.length <= maxBytes) {
+    return parts.stem + label + parts.extension
+  }
+
+  // Only names that must change anyway are cleaned.
+  const stem = cleanText(parts.stem),
+    cleanExtension = cleanText(parts.extension),
+    cleaned = stem + cleanExtension,
+    // Hashing the cleaned name gives NFC and NFD input the same result.
+    hash = '~' + fnv1aHex(encoder.encode(cleaned)),
+    extensionBytes = encoder.encode(cleanExtension).length,
+    // "." and ".." would point at directories, so they count as empty.
+    emptyStem = stem === '' || stem === '.' || stem === '..'
+
+  if (emptyStem) {
+    const extensionFits =
+      hash.length + label.length + extensionBytes <= maxBytes
+
+    return hash + label + (extensionFits ? cleanExtension : '')
+  }
+
+  if (encoder.encode(cleaned).length + label.length <= maxBytes) {
+    return stem + label + cleanExtension
+  }
+
+  const marker = ellipsis + hash + label,
+    // Without one byte left for the base the extension is not really an
+    // extension (for example a dot in a long title), so cut the whole name.
+    keepExtension = extensionBytes + marker.length < maxBytes,
+    base = keepExtension ? stem : cleaned,
+    extension = keepExtension ? cleanExtension : '',
+    baseBudget = maxBytes - marker.length - (keepExtension ? extensionBytes : 0)
+
+  return truncateUtf8(base, baseBudget) + marker + extension
+}
+
+/**
  * Makes a file name fit into maxBytes UTF-8 bytes so it can be written to
  * file systems with a per-name byte limit.
  *
@@ -124,52 +176,60 @@ function cleanText(value) {
  * impossible). The extension is kept whenever at least one base byte still
  * fits. Calling it again on its output is a no-op.
  *
+ * With existingNames (the names already in the target folder) it becomes a
+ * unique name generator: when the result is taken, even for a short name,
+ * " (1)", " (2)", ... is added before the extension and the first free name
+ * that still fits is returned. The result then depends on existingNames, so
+ * the same name can give different results. Names are compared exactly; on
+ * case-insensitive file systems pass lowercased names and compare likewise.
+ *
  * @param {string} name single file name without separators
  * @param {number} [maxBytes=MaxFileNameBytes] UTF-8 byte limit, integer >= 13
+ * @param {Iterable<string>} [existingNames] names that must not be returned
  * @return {string}
- * @throws {Error} ErrArguments when name is not a string or maxBytes is not an
- *   integer of at least 13
+ * @throws {Error} ErrArguments when name is not a string, maxBytes is not an
+ *   integer of at least 13 or existingNames is not an iterable
+ * @throws {Error} ErrFileExists if no free name fits (only when maxBytes is
+ *   too small for the counter)
  */
-export function safeFileName(name, maxBytes = MaxFileNameBytes) {
+export function safeFileName(
+  name,
+  maxBytes = MaxFileNameBytes,
+  existingNames = undefined
+) {
   const validName = typeof name === 'string',
-    validMaxBytes = Number.isInteger(maxBytes) && maxBytes >= minFileNameBytes
+    validMaxBytes = Number.isInteger(maxBytes) && maxBytes >= minFileNameBytes,
+    hasExistingNames = typeof existingNames !== 'undefined',
+    validExistingNames =
+      !hasExistingNames ||
+      (existingNames !== null &&
+        typeof existingNames !== 'string' &&
+        typeof existingNames[Symbol.iterator] === 'function')
 
-  if (!validName || !validMaxBytes) {
+  if (!validName || !validMaxBytes || !validExistingNames) {
     throw new Error(ErrArguments)
   }
 
-  if (encoder.encode(name).length <= maxBytes) return name
+  const candidate = fitFileName(name, maxBytes)
 
-  // Only names that must change anyway are cleaned, so short names keep their
-  // exact bytes (backward compatible with existing trees).
-  const parts = splitExtension(name),
-    stem = cleanText(parts.stem),
-    cleanExtension = cleanText(parts.extension),
-    cleaned = stem + cleanExtension,
-    // Hashing the cleaned name gives NFC and NFD input the same result.
-    hash = '~' + fnv1aHex(encoder.encode(cleaned)),
-    cleanedBytes = encoder.encode(cleaned).length,
-    extensionBytes = encoder.encode(cleanExtension).length,
-    // "." and ".." would point at directories, so they count as empty.
-    emptyStem = stem === '' || stem === '.' || stem === '..'
+  if (!hasExistingNames) return candidate
 
-  if (emptyStem) {
-    const extensionFits = hash.length + extensionBytes <= maxBytes
+  const taken =
+    existingNames instanceof Set ? existingNames : new Set(existingNames)
 
-    return extensionFits ? hash + cleanExtension : hash
+  if (!taken.has(candidate)) return candidate
+
+  // Every counter gives a different name (the digits between the last "("
+  // and ")" differ), so taken.size + 1 tries reach a free one unless the
+  // limit is too small for the counter. The bound keeps the loop finite.
+  for (let counter = 1; counter <= taken.size + 1; counter++) {
+    const numbered = fitFileName(name, maxBytes, ' (' + counter + ')'),
+      fits = encoder.encode(numbered).length <= maxBytes
+
+    if (fits && !taken.has(numbered)) return numbered
   }
 
-  if (cleanedBytes <= maxBytes) return cleaned
-
-  const marker = ellipsis + hash,
-    // Without one byte left for the base the extension is not really an
-    // extension (for example a dot in a long title), so cut the whole name.
-    keepExtension = extensionBytes + marker.length < maxBytes,
-    base = keepExtension ? stem : cleaned,
-    extension = keepExtension ? cleanExtension : '',
-    baseBudget = maxBytes - marker.length - (keepExtension ? extensionBytes : 0)
-
-  return truncateUtf8(base, baseBudget) + marker + extension
+  throw new Error(ErrFileExists)
 }
 
 export class Path {
