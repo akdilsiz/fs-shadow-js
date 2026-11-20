@@ -134,6 +134,10 @@ const fixedUUIDs = {
     temp: '00000000-0000-4000-8000-00000000000d',
     ghost: '00000000-0000-4000-8000-0000000000ff'
   },
+  // Base CreatedAt of the fixed vectors: Unix time 1700000000. Each event is
+  // `fixedTimestamp + n`. Built from the ISO date so no ten-digit literal is
+  // left for static analysis to misread as an imprecise number.
+  fixedTimestamp = Date.parse('2023-11-14T22:13:20Z') / 1000,
   // Stored msgpack bytes of a sequential list: Create root, docs, note.txt,
   // pics; Rename and Move pics; Create and Remove tmp.bin; Write note.txt.
   sequentialTransactionsHex = [
@@ -188,8 +192,8 @@ function fixedTransaction(
 function encodeTransactions(eventTransactions) {
   const encodedTxnS = []
 
-  for (let i = 0; i < eventTransactions.length; i++) {
-    const { encoded } = eventTransactions[i].Encode()
+  for (const eventTransaction of eventTransactions) {
+    const { encoded } = eventTransaction.Encode()
     encodedTxnS.push(encoded)
   }
 
@@ -266,7 +270,7 @@ function expectedRootWithDocsAndPics() {
         fixedUUIDs.root,
         true,
         0,
-        1700000001
+        fixedTimestamp + 1
       ),
       expectedSubNode(
         [],
@@ -275,12 +279,12 @@ function expectedRootWithDocsAndPics() {
         fixedUUIDs.root,
         true,
         0,
-        1700000003
+        fixedTimestamp + 3
       )
     ],
     'root',
     fixedUUIDs.root,
-    1700000000
+    fixedTimestamp
   )
 }
 
@@ -291,7 +295,15 @@ function expectedRootWithDocsAndPics() {
  */
 function transactionsWithEventBetweenDocsAndPics(event) {
   return encodeTransactions([
-    fixedTransaction('root', Create, fixedUUIDs.root, '', true, 0, 1700000000),
+    fixedTransaction(
+      'root',
+      Create,
+      fixedUUIDs.root,
+      '',
+      true,
+      0,
+      fixedTimestamp
+    ),
     fixedTransaction(
       'docs',
       Create,
@@ -299,7 +311,7 @@ function transactionsWithEventBetweenDocsAndPics(event) {
       fixedUUIDs.root,
       true,
       0,
-      1700000001
+      fixedTimestamp + 1
     ),
     event,
     fixedTransaction(
@@ -309,7 +321,7 @@ function transactionsWithEventBetweenDocsAndPics(event) {
       fixedUUIDs.root,
       true,
       0,
-      1700000003
+      fixedTimestamp + 3
     )
   ])
 }
@@ -344,7 +356,7 @@ describe('Restore Tolerance Tests', () => {
                 fixedUUIDs.docs,
                 false,
                 12,
-                1700000002
+                fixedTimestamp + 2
               ),
               expectedSubNode(
                 [],
@@ -353,7 +365,7 @@ describe('Restore Tolerance Tests', () => {
                 fixedUUIDs.docs,
                 true,
                 0,
-                1700000004
+                fixedTimestamp + 4
               )
             ],
             'docs',
@@ -361,18 +373,16 @@ describe('Restore Tolerance Tests', () => {
             fixedUUIDs.root,
             true,
             0,
-            1700000001
+            fixedTimestamp + 1
           )
         ],
         'root',
         fixedUUIDs.root,
-        1700000000
+        fixedTimestamp
       )
 
-    for (let i = 0; i < sequentialTransactionsHex.length; i++) {
-      transactions.push(
-        new Uint8Array(Buffer.from(sequentialTransactionsHex[i], 'hex'))
-      )
+    for (const transactionHex of sequentialTransactionsHex) {
+      transactions.push(new Uint8Array(Buffer.from(transactionHex, 'hex')))
     }
 
     const withoutForce = await CreateFileNodeWithTransactions(transactions),
@@ -391,7 +401,7 @@ describe('Restore Tolerance Tests', () => {
           '',
           true,
           0,
-          1700000000
+          fixedTimestamp
         ),
         fixedTransaction(
           'docs',
@@ -400,7 +410,7 @@ describe('Restore Tolerance Tests', () => {
           fixedUUIDs.root,
           true,
           0,
-          1700000001
+          fixedTimestamp + 1
         ),
         fixedTransaction(
           'root-renamed',
@@ -409,14 +419,14 @@ describe('Restore Tolerance Tests', () => {
           '',
           true,
           0,
-          1700000002
+          fixedTimestamp + 2
         )
       ]),
       expected = expectedRootJSON(
         [],
         'root-renamed',
         fixedUUIDs.root,
-        1700000002
+        fixedTimestamp + 2
       )
 
     const withoutForce = await CreateFileNodeWithTransactions(transactions),
@@ -435,7 +445,7 @@ describe('Restore Tolerance Tests', () => {
           '',
           true,
           0,
-          1700000000
+          fixedTimestamp
         ),
         fixedTransaction(
           'docs',
@@ -444,11 +454,24 @@ describe('Restore Tolerance Tests', () => {
           fixedUUIDs.root,
           true,
           0,
-          1700000001
+          fixedTimestamp + 1
         ),
-        fixedTransaction('docs', Move, fixedUUIDs.docs, '', true, 0, 1700000002)
+        fixedTransaction(
+          'docs',
+          Move,
+          fixedUUIDs.docs,
+          '',
+          true,
+          0,
+          fixedTimestamp + 2
+        )
       ]),
-      expected = expectedRootJSON([], 'docs', fixedUUIDs.docs, 1700000002)
+      expected = expectedRootJSON(
+        [],
+        'docs',
+        fixedUUIDs.docs,
+        fixedTimestamp + 2
+      )
 
     const { fileNode } = await CreateFileNodeWithTransactions(transactions),
       rejection = await restoreRejection(transactions, true)
@@ -467,7 +490,7 @@ describe('Restore Tolerance Tests', () => {
         fixedUUIDs.root,
         false,
         1,
-        1700000002
+        fixedTimestamp + 2
       )
     )
 
@@ -485,7 +508,7 @@ describe('Restore Tolerance Tests', () => {
         fixedUUIDs.docs,
         false,
         1,
-        1700000002
+        fixedTimestamp + 2
       )
     )
 
@@ -503,7 +526,7 @@ describe('Restore Tolerance Tests', () => {
         '',
         false,
         1,
-        1700000002
+        fixedTimestamp + 2
       )
     )
 
@@ -521,7 +544,7 @@ describe('Restore Tolerance Tests', () => {
         fixedUUIDs.root,
         false,
         1,
-        1700000002
+        fixedTimestamp + 2
       )
     )
 
@@ -543,7 +566,7 @@ describe('Restore Tolerance Tests', () => {
           '',
           true,
           0,
-          1700000000
+          fixedTimestamp
         ),
         fixedTransaction(
           'later-name',
@@ -552,7 +575,7 @@ describe('Restore Tolerance Tests', () => {
           fixedUUIDs.root,
           false,
           3,
-          1700000001
+          fixedTimestamp + 1
         ),
         fixedTransaction(
           'first-name',
@@ -561,7 +584,7 @@ describe('Restore Tolerance Tests', () => {
           fixedUUIDs.root,
           false,
           3,
-          1700000002
+          fixedTimestamp + 2
         ),
         fixedTransaction(
           'docs',
@@ -570,7 +593,7 @@ describe('Restore Tolerance Tests', () => {
           fixedUUIDs.root,
           true,
           0,
-          1700000003
+          fixedTimestamp + 3
         )
       ]),
       expected = expectedRootJSON(
@@ -582,7 +605,7 @@ describe('Restore Tolerance Tests', () => {
             fixedUUIDs.root,
             false,
             3,
-            1700000002
+            fixedTimestamp + 2
           ),
           expectedSubNode(
             [],
@@ -591,12 +614,12 @@ describe('Restore Tolerance Tests', () => {
             fixedUUIDs.root,
             true,
             0,
-            1700000003
+            fixedTimestamp + 3
           )
         ],
         'root',
         fixedUUIDs.root,
-        1700000000
+        fixedTimestamp
       )
 
     const { fileNode } = await CreateFileNodeWithTransactions(transactions)
@@ -614,7 +637,7 @@ describe('Restore Tolerance Tests', () => {
             fixedUUIDs.root,
             false,
             1,
-            1700000002
+            fixedTimestamp + 2
           )
         ),
         true
@@ -628,7 +651,7 @@ describe('Restore Tolerance Tests', () => {
             fixedUUIDs.docs,
             false,
             1,
-            1700000002
+            fixedTimestamp + 2
           )
         ),
         true
@@ -649,7 +672,7 @@ describe('Restore Tolerance Tests', () => {
         fixedUUIDs.root,
         false,
         1,
-        1700000002
+        fixedTimestamp + 2
       )
     )
     const { watcher } = await NewVirtualPathWatcher(
